@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Where Every Film Was Shot</title>
+<meta name="description" content="An interactive world map of {{source.n_films|int}} films and their {{source.n_locs|int}} filming locations in Wikidata: the busiest filming cities, which countries host other countries' films, how that changed by decade, and every James Bond location.">
+<meta property="og:title" content="Where every film was shot: {{source.n_films|int}} films, {{source.n_locs|int}} filming locations">
+<meta property="og:description" content="Filming locations from Wikidata on one map: Los Angeles, New York and London lead; Canada hosts the most foreign films; and the 25 Eon Bond films visited {{bond.n_non_uk|int}} countries beyond the UK.">
+<meta property="og:image" content="https://maps.tristanhotham.com/film-locations/header.png">
+<meta property="og:url" content="https://maps.tristanhotham.com/film-locations/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800;9..144,900&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+/* Projection room: screen-white paper, velvet red, brass gold (Bond), and a cool teal for films shot abroad. */
+:root{
+  --bg:#F6F2EA; --panel:#ECE6DA; --fg:#1C1A1F; --muted:#67626A; --rule:#E2DBCD; --card:#FFFCF6; --border:#CFC6B6;
+  --hot:#A3202E; --cool:#1F7A85; --gold:#B8860B; --home:#8A7B68; --land:#EAE4D7; --sea:#F2EEE6;
+  --display:"Fraunces",Georgia,"Times New Roman",serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141317; --panel:#201E24; --fg:#EEEBE6; --muted:#A8A3AA; --rule:#34313A; --card:#1A191E; --border:#4A4650;
+  --hot:#E2707B; --cool:#6CC3CC; --gold:#E8BE5A; --home:#B9AA95; --land:#26252B; --sea:#18171B; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141317; --panel:#201E24; --fg:#EEEBE6; --muted:#A8A3AA; --rule:#34313A; --card:#1A191E; --border:#4A4650;
+  --hot:#E2707B; --cool:#6CC3CC; --gold:#E8BE5A; --home:#B9AA95; --land:#26252B; --sea:#18171B; color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 18px/1.62 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overflow-x:hidden}
+.wrap{max-width:700px;margin:0 auto;padding-block:28px 64px}
+.wrap .bleed{width:min(1180px,calc(100vw - 32px));margin-left:calc((100% - min(1180px,100vw - 32px))/2);margin-right:0}
+a{color:inherit;text-decoration-color:var(--hot);text-underline-offset:3px}
+.kicker{font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.kicker b{background:var(--hot);color:#fff;padding:5px 8px;font-weight:500}
+header.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 24px;align-items:end;border-bottom:6px double var(--fg);padding-bottom:22px;margin-top:18px}
+h1{font:900 clamp(44px,11vw,94px)/.9 var(--display);letter-spacing:-.02em;margin:0;text-wrap:balance}
+h1 .a{color:var(--hot)} h1 .b{color:var(--cool)}
+.mark{width:clamp(78px,16vw,128px);height:auto;display:block;color:var(--fg)}
+.dek{grid-column:1/-1;font-size:21px;line-height:1.42;margin:8px 0 0;max-width:56ch}
+.byline{font:400 13px/1.4 var(--mono);color:var(--muted);margin-top:14px}
+h2{font:800 34px/1.04 var(--display);letter-spacing:-.01em;margin:54px 0 10px;text-wrap:balance}
+h2 .n{font:500 13px/1 var(--mono);color:var(--hot);display:block;letter-spacing:.1em;margin-bottom:10px}
+h3{font:600 20px/1.25 var(--display);margin:28px 0 6px}
+p{margin:0 0 16px}
+.lede::first-letter{font:900 72px/.8 var(--display);float:left;margin:6px 10px 0 0;color:var(--hot)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);margin:26px 0 8px}
+.stats div{background:var(--card);padding:14px 12px}
+.stats b{display:block;font:900 clamp(22px,4.4vw,32px)/1 var(--display);letter-spacing:-.01em}
+.stats b.h{color:var(--hot)} .stats b.c{color:var(--cool)} .stats b.g{color:var(--gold)} .stats b.p{color:var(--fg)}
+.stats span{font:400 12px/1.35 var(--mono);color:var(--muted);display:block;margin-top:6px}
+@media (max-width:600px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.figure{margin:26px 0 30px}
+.fig-h{font:600 19px/1.25 var(--display);margin:0 0 4px}
+.fig-sub{font:400 13px/1.45 var(--mono);color:var(--muted);margin:0 0 12px}
+.src{font:400 12px/1.45 var(--mono);color:var(--muted);margin-top:10px}
+.chart{width:100%;position:relative}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{font-family:var(--mono);fill:var(--fg)}
+.lab{font-size:12px}.lab.m{fill:var(--muted)}.lab.b{font-weight:500}.lab.s{font-size:11px}
+.tip{position:absolute;pointer-events:none;background:var(--fg);color:var(--bg);font:400 12px/1.45 var(--mono);padding:8px 10px;border-radius:3px;max-width:290px;z-index:1000;transform:translate(-50%,calc(-100% - 12px));display:none}
+.tip b{font-weight:500}
+.controls{display:flex;gap:8px 14px;align-items:center;margin:0 0 10px;flex-wrap:wrap}
+.scrollrow{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding-bottom:2px;max-width:100%}
+.scrollrow .btn{flex:0 0 auto;white-space:nowrap}
+.ctl-l{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:2px;flex:0 0 auto;align-self:center}
+.btn{font:500 12px/1 var(--mono);background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:8px 10px;cursor:pointer;min-height:36px}
+.btn[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn.bond[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#1C1A1F}
+.btn:focus-visible,input:focus-visible,summary:focus-visible,select:focus-visible{outline:2px solid var(--hot);outline-offset:2px}
+.sel{display:flex;gap:6px;align-items:center}
+.sel select{font:400 13px var(--mono);background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:7px 8px;min-height:36px;max-width:210px}
+.searchbox{position:relative;flex:1 1 260px;min-width:0}
+input[type=search]{font:400 15px/1 var(--mono);background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:10px 11px;min-height:40px;width:100%}
+.suggest{position:absolute;left:0;right:0;top:100%;margin:2px 0 0;padding:0;list-style:none;background:var(--card);border:1px solid var(--border);z-index:1001;font:400 13px/1.3 var(--mono);display:none;max-height:340px;overflow:auto}
+.suggest li{padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--rule)}
+.suggest li span{color:var(--muted)}
+.suggest li[aria-selected="true"],.suggest li:hover{background:var(--panel)}
+.timebar{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:12px;align-items:center;margin:0 0 10px}
+.play{width:46px;height:46px;border-radius:50%;border:0;background:var(--hot);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.play svg{width:20px;height:20px}
+.yr{font:900 40px/1 var(--display);letter-spacing:-.02em;min-width:4.2ch;font-variant-numeric:tabular-nums}
+.yr small{display:block;font:400 11px/1.2 var(--mono);color:var(--muted);letter-spacing:.04em}
+input[type=range].slider{width:100%;accent-color:var(--hot);min-height:32px}
+.ticks{display:flex;justify-content:space-between;font:400 10.5px/1 var(--mono);color:var(--muted);margin-top:-4px}
+.mapgrid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:14px;align-items:start}
+@media (max-width:900px){.mapgrid{grid-template-columns:1fr}}
+.side{background:var(--card);border:1px solid var(--border);padding:12px 12px 10px;font:400 13px/1.45 var(--mono);max-height:640px;overflow:auto}
+@media (max-width:900px){.side{max-height:520px}}
+.side h4{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+.side h4:first-child{margin-top:2px}
+.side .big{font:800 24px/1.1 var(--display);margin:2px 0 4px}
+.side .sub{color:var(--muted);font-size:12px;margin:0 0 8px}
+.side ol,.side ul{margin:4px 0 8px;padding-left:20px}
+.side li{margin:3px 0}
+.side li small,.side td small{color:var(--muted)}
+.side table{width:100%;border-collapse:collapse;margin:4px 0 6px}
+.side td{padding:4px 4px 4px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+.side td.num{text-align:right;white-space:nowrap}
+.side .more{font:400 12px var(--mono);background:none;border:1px solid var(--border);border-radius:3px;color:var(--fg);padding:5px 8px;cursor:pointer}
+.ab{display:inline-block;font:500 10px/1 var(--mono);padding:2px 4px;border-radius:2px;margin-left:4px;vertical-align:1px}
+.ab.a{background:var(--cool);color:#fff}.ab.h{background:var(--panel);color:var(--muted)}.ab.b{background:var(--gold);color:#1C1A1F}
+.back{font:400 12px var(--mono);background:none;border:0;color:var(--muted);padding:0;cursor:pointer;text-decoration:underline;margin-bottom:6px}
+.go{cursor:pointer;text-decoration:underline;text-decoration-color:var(--border);text-underline-offset:3px}
+.lmap{height:620px;border:1px solid var(--border);background:var(--sea);border-radius:2px}
+@media (max-width:600px){.lmap{height:min(64vh,480px)}.leaflet-control-attribution{font-size:9px;line-height:1.2}}
+.leaflet-container{font:400 12px/1.4 var(--mono);background:var(--sea)}
+.dotcanvas{position:absolute;left:0;top:0;pointer-events:none}
+.lyrBtn{background:var(--card,var(--bg));color:var(--fg);border:1px solid var(--border);border-radius:3px;font:600 12px/1 var(--mono);padding:8px 10px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.lyrBtn[aria-expanded="true"]{background:var(--fg);color:var(--bg)}
+.lyrPanel{background:var(--card,var(--bg));color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:10px 12px 8px;margin-top:6px;width:258px;box-shadow:0 2px 10px rgba(0,0,0,.15);font:400 12px/1.3 var(--mono);max-height:min(70vh,520px);overflow:auto}
+.lyrPanel[hidden]{display:none}
+.lyrPanel .row{margin:0 0 9px}
+.lyrPanel label{display:flex;gap:6px;align-items:center;cursor:pointer;font-weight:600}
+.lyrPanel input[type=range]{width:100%;accent-color:var(--fg)}
+.lyrPanel select{font:400 12px var(--mono);background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:2px;padding:2px 4px;width:100%;min-height:0}
+.lyrPanel .sub{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:11px;margin-top:3px}
+.lyrPanel .sub span{flex:0 0 58px}
+.lyrPanel .hd{font:500 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 7px;border-top:1px solid var(--rule);padding-top:9px}
+.lyrPanel .reset{font:400 11px var(--mono);color:var(--muted);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.cityL{font:500 11px/1 var(--mono);color:var(--fg);white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg);pointer-events:none}
+.cityL i{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--fg);margin-right:4px;vertical-align:1px}
+.cityL.s{font-size:10px;font-weight:400}
+.cntL{font:700 11px/1 var(--mono);color:var(--fg);white-space:nowrap;text-transform:uppercase;letter-spacing:.06em;opacity:.75;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg);pointer-events:none;text-align:center}
+.mapnote{background:color-mix(in srgb,var(--card) 92%,transparent);border:1px solid var(--border);border-radius:3px;padding:6px 9px;font:400 12px/1.35 var(--mono);max-width:min(300px,62vw);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.mapnote b{font-weight:600}
+.mapnote:empty{display:none}
+.leaflet-bar a,.leaflet-bar a:hover{background:var(--card);color:var(--fg);border-bottom-color:var(--border)}
+.leaflet-control-attribution{background:color-mix(in srgb,var(--card) 85%,transparent)!important;color:var(--muted)}
+.leaflet-control-attribution a{color:var(--fg)}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--card);color:var(--fg)}
+.leaflet-popup-content{font:400 12.5px/1.45 var(--mono);margin:10px 12px}
+.leaflet-popup-content b{font:700 15px/1.2 var(--display)}
+.legend{display:flex;gap:6px 14px;flex-wrap:wrap;font:400 12px/1.3 var(--mono);color:var(--muted);margin-top:8px;align-items:center}
+.legend span{display:inline-flex;align-items:center}
+.legend i{display:inline-block;width:13px;height:13px;margin-right:6px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}
+.legend i.sq{border-radius:2px}
+.legend i.r{background:transparent!important;border:2px dashed var(--muted)}
+.legend .ramp{display:inline-block;width:150px;height:12px;border-radius:2px;margin:0 6px;border:1px solid rgba(0,0,0,.1)}
+.pull{font:600 26px/1.25 var(--display);border-left:6px solid var(--hot);padding:4px 0 4px 18px;margin:30px 0}
+.note{background:var(--panel);border:1px solid var(--rule);padding:14px 16px;font-size:16px;margin:22px 0}
+.note h3{margin-top:0}
+table.bt{width:100%;border-collapse:collapse;font:400 13px/1.4 var(--mono)}
+table.bt th{font:500 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 6px 6px 0;border-bottom:2px solid var(--fg)}
+table.bt td{padding:6px 6px 6px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+table.bt td.y{font-weight:500;white-space:nowrap}
+table.bt td.num{text-align:right}
+table.bt tr{cursor:pointer}
+table.bt tr:hover td{background:var(--panel)}
+.tablebox{max-height:460px;overflow:auto;border:1px solid var(--border);background:var(--card);padding:0 10px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:20px 0}
+@media (max-width:760px){.cards{grid-template-columns:1fr 1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-top:6px solid var(--c,var(--hot));padding:12px 14px;font:400 13px/1.5 var(--mono)}
+.card b{font:600 19px/1.2 var(--display);display:block;margin-bottom:2px}
+.card .big{font:900 30px/1.05 var(--display);margin:6px 0 2px}
+details{margin:14px 0}
+summary{font:500 13px/1.4 var(--mono);cursor:pointer;color:var(--fg);padding:8px 0}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.cta a{font:500 13px/1 var(--mono);text-decoration:none;border:1px solid var(--fg);padding:11px 14px;border-radius:3px}
+.cta a.p{background:var(--hot);border-color:var(--hot);color:#fff}
+footer{border-top:6px double var(--fg);margin-top:56px;padding-top:16px;font:400 13px/1.55 var(--mono);color:var(--muted)}
+footer p{margin:0 0 10px}
+.theme{position:fixed;right:12px;bottom:12px;z-index:1002}
+@media print{.theme,.controls{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="kicker"><b>Data study</b><span>Film</span><span>World, 1890s to today</span></div>
+<header class="hero">
+  <h1>Where every <span class="a">film</span> was <span class="b">shot</span></h1>
+  <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><g id="heroMark"></g></svg>
+  <p class="dek">Wikidata, the open database behind Wikipedia, knows where {{source.n_films|int}} films were shot: {{source.n_locs|int}} filming locations, from Pinewood Studios to Lake Como. This map puts them all in one place, shows which countries play host to other countries' films, and follows James Bond around the world.</p>
+</header>
+<div class="byline">Dr Tristan Hotham · Independent researcher · 2026 · Data: Wikidata; Natural Earth</div>
+
+<div class="stats">
+  <div><b class="p">{{source.n_films|int}}</b><span>films with a filming location in Wikidata, at {{source.n_locs|int}} places</span></div>
+  <div><b class="h">{{hubs.la.n|int}}</b><span>films shot in and around Los Angeles, the busiest filming city in the record</span></div>
+  <div><b class="c">{{hosts.can.foreign|int}}</b><span>foreign films shot in Canada, more than any other country; {{hosts.can_from_us_pct|pc}} are American</span></div>
+  <div><b class="g">{{bond.n_non_uk|int}}</b><span>countries and territories beyond the UK and Gibraltar where the 25 Eon Bond films were shot, according to Wikidata</span></div>
+</div>
+
+<p class="lede">Every film is made somewhere, and quite often it is made somewhere other than where it is set, or where it comes from. Wikidata records a filming location for tens of thousands of films, each with coordinates. Put them on a map and you get a picture of the world's film industry as the open record sees it: a few huge production cities, a ring of studios and suburbs around them, and a scattering of deserts, islands and old towns that turn up in film after film.</p>
+<p>That record is far from complete, and its gaps are not random. {{source.us_pct|pc}} of the films here are American, and films with more Wikipedia articles have more locations recorded. Many locations are whole countries or states rather than places: {{source.plev_pct.country|pc}} of film-location records just say a country, and {{source.plev_pct.region|pc}} a state or region. Those are kept off the point map, so a country's middle never looks like a film set; they still count when I ask which countries host which films. Use the map to explore, and read every number as "what Wikidata knows".</p>
+
+<h2><span class="n">01 · The map</span>{{source.n_locs|int}} filming locations</h2>
+<div class="bleed" id="atlas">
+<div class="timebar">
+  <button class="play" id="play" aria-label="Play through the decades"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg></button>
+  <div class="yr" id="yr">All<small id="yrsub">decades</small></div>
+  <div><input type="range" class="slider" id="slider" min="0" max="13" step="1" value="0" aria-label="Decade"><div class="ticks"><span>all</span><span>1900s</span><span>1950s</span><span>2000s</span><span>2020s</span></div></div>
+</div>
+<div class="controls">
+  <div class="scrollrow" id="viewRow"><span class="ctl-l">Show</span><button class="btn" data-v="hex" aria-pressed="true">Hex bins</button><button class="btn" data-v="places" aria-pressed="false">Places</button></div>
+  <div class="scrollrow" id="metRow"><span class="ctl-l">Count</span><button class="btn" data-m="n" aria-pressed="true">Films</button><button class="btn" data-m="w" aria-pressed="false">Popularity-weighted</button></div>
+  <div class="scrollrow" id="haRow"><span class="ctl-l">Films</span><button class="btn" data-h="all" aria-pressed="true">All</button><button class="btn" data-h="home" aria-pressed="false">Shot at home</button><button class="btn" data-h="abroad" aria-pressed="false">Shot abroad</button></div>
+</div>
+<div class="controls">
+  <label class="sel"><span class="ctl-l">Made in</span><select id="orig" aria-label="Country of origin"><option value="">Any country</option></select></label>
+  <label class="sel"><span class="ctl-l">Popularity</span><select id="pop" aria-label="Minimum popularity"><option value="0">All films</option><option value="5">5+ sitelinks</option><option value="20">20+ sitelinks</option><option value="50">50+ sitelinks (very well known)</option></select></label>
+  <button class="btn bond" id="bondBtn" aria-pressed="false">007 · Bond layer</button>
+</div>
+<div class="controls">
+  <div class="searchbox"><input type="search" id="q" placeholder="Search a film, a place or a country" aria-label="Search a film, a place or a country" autocomplete="off"><ul class="suggest" id="sug" role="listbox"></ul></div>
+</div>
+<div class="controls">
+  <div class="scrollrow" id="focusRow"><span class="ctl-l">Zoom to</span></div>
+</div>
+<div class="mapgrid">
+  <div><div id="map" class="lmap" role="application" aria-label="Map of film locations"></div>
+    <div class="legend" id="legend"></div></div>
+  <div class="side" id="side" aria-live="polite"></div>
+</div>
+<p class="src">Hex bins and circles count distinct films with a filming location there (or, popularity-weighted, the sum of those films' Wikidata sitelinks). Only cities, towns and sites are mapped; locations that are a whole country or a state are listed in the side panel and can be shown as dashed rings from the layers menu. "Shot abroad" means the location is outside every country of origin Wikidata gives for the film. Source: Wikidata (CC0). Outlines: Natural Earth. Base map tiles © Esri.</p>
+</div>
+
+<h2><span class="n">02 · The film cities</span>Los Angeles, New York, London, Paris</h2>
+<p>Group every location with the nearest big city (within 32 km), so that Pinewood Studios counts for London and Santa Monica for Los Angeles, and four places stand out. Los Angeles has {{hubs.la.n|int}} films, New York {{hubs.ny.n|int}}, London {{hubs.london.n|int}} and Paris {{hubs.paris.n|int}}. Vancouver is fifth with {{hubs.vancouver.n|int}}. Together the top five account for {{hubs.top5_pct|pc}} of all films with a mapped location.</p>
+<div class="figure"><p class="fig-h">The busiest filming cities</p><p class="fig-sub">Distinct films with a location within 32 km of each city. Switch to popularity-weighted to count each film by its number of Wikidata sitelinks. Click a bar to see the city on the map.</p>
+<div class="controls"><div class="scrollrow" id="hubMet"><span class="ctl-l">Count</span><button class="btn" data-m="n" aria-pressed="true">Films</button><button class="btn" data-m="w" aria-pressed="false">Popularity-weighted</button></div></div>
+<div class="chart" id="hubChart"></div></div>
+<p>Weighting by popularity changes the order lower down. Long Beach rises from {{hubs.pick.Long Beach.rank_n|ord}} by films to {{hubs.pick.Long Beach.rank_w|ord}}, and Malibu and San Diego climb too, because the films shot there are well known. Hong Kong falls from {{hubs.pick.Hong Kong.rank_n|ord}} to {{hubs.pick.Hong Kong.rank_w|ord}}, and Ooty, the hill town in Tamil Nadu with {{hubs.pick.Ooty.n|int}} films, almost all Indian, drops out of the top twenty. Popularity here is a Wikipedia measure: it favours films that have articles in many languages, which mostly means Hollywood.</p>
+<p>The single most used site is Pinewood Studios, west of London, with {{sites.pinewood|int}} films. {{sites.n_studio|int}} filming locations are named as studios or sound stages, and between them they appear {{sites.studio_pairs|int}} times.</p>
+
+<h2><span class="n">03 · Home and away</span>Who films in whose country</h2>
+<p>A film is shot abroad when a location is outside every country Wikidata gives as its country of origin, so co-productions are at home in every partner country. By that measure {{abroad.pct|pc}} of films with an origin and a located filming place were shot at least partly abroad ({{abroad.pct_ex_idn|pc}} leaving out Indonesia's films, which almost all list only Indonesia).</p>
+<p>Canada hosts the most foreign productions by far: {{hosts.can.foreign|int}} films, {{hosts.can_from_us_pct|pc}} of them American. The United States ({{hosts.usa.foreign|int}}), the United Kingdom ({{hosts.gbr.foreign|int}}), France ({{hosts.top_foreign.3.foreign|int}}) and Spain ({{hosts.esp.foreign|int}}) follow, then Mexico ({{hosts.mex.foreign|int}}). In smaller places foreign films dominate: {{hosts.mlt.foreign_pct|pc}} of the films shot in Malta come from somewhere else, {{hosts.mar.foreign_pct|pc}} in Morocco, {{hosts.bgr.foreign_pct|pc}} in Bulgaria, {{hosts.isl.foreign_pct|pc}} in Iceland and {{hosts.nzl.foreign_pct|pc}} in New Zealand.</p>
+<div class="figure"><p class="fig-h">Countries that host other countries' films</p><p class="fig-sub">Films with a filming location in each country, split into the country's own films (grey) and foreign productions (teal). The fifteen countries with the most foreign productions. Hover for where they come from.</p><div class="chart" id="hostChart"></div>
+<div class="legend"><span><i class="sq" style="background:var(--home)"></i>own films</span><span><i class="sq" style="background:var(--cool)"></i>foreign productions</span></div></div>
+<div class="figure"><p class="fig-h">Where foreign films are the majority</p><p class="fig-sub">Share of films shot in each country that are foreign productions, for countries with at least 40 films with a known origin.</p><div class="chart" id="shareChart"></div></div>
+<p>Big film nations mostly stay at home. Only {{hosts.usa.foreign_pct|pc}} of the films shot in the United States are foreign, and {{hosts.idn.foreign_pct|pc}} in Indonesia. Going the other way, {{leave.gbr.pct|pc}} of British films and {{leave.ind.pct|pc}} of Indian films with a located place were shot partly abroad, against {{leave.usa.pct|pc}} of American and {{leave.fra.pct|pc}} of French films.</p>
+
+<h3>By decade</h3>
+<p>The share of films shot abroad has risen, but less than you might expect: from {{decades.4.pct_ex_idn|pc}} of films in the 1950s to {{decades.9.pct_ex_idn|pc}} in the 2000s and {{decades.10.pct_ex_idn|pc}} in the 2010s (leaving out Indonesia). American films were already travelling in the 1950s and 1960s ({{decades.5.us_pct|pc}} in the 1960s) when Hollywood went to Spain, Italy and Britain for cheaper crews and for earnings that could not be taken out of Europe. What changed more is where they went.</p>
+<div class="figure"><p class="fig-h">Share of films shot at least partly abroad, by decade</p><p class="fig-sub">Films with a country of origin and a located filming place. Hover a point.</p><div class="chart" id="decChart"></div>
+<div class="legend"><span><i style="background:var(--hot)"></i>all films (excluding Indonesia)</span><span><i style="background:var(--cool)"></i>American films</span></div></div>
+<div class="figure"><p class="fig-h">Foreign productions hosted, by decade</p><p class="fig-sub">Films from other countries shot in each place, per decade. Spain peaks in the {{host_peak.ESP|raw}}s, Canada and Bulgaria in the {{host_peak.CAN|raw}}s, Hungary and Iceland in the {{host_peak.HUN|raw}}s.</p><div class="chart" id="hostDecChart"></div></div>
+
+<h2><span class="n">04 · Stand-ins</span>Places that play somewhere else</h2>
+<p>Some cities are filmed mostly by other people. In Valletta and the rest of Malta, {{hubs.pick.Valletta.foreign_pct|pc}} of films are foreign, mainly British and American. Budapest ({{hubs.pick.Budapest.foreign_pct|pc}}), Vancouver ({{hubs.vancouver.foreign_pct|pc}}) and Toronto ({{hubs.pick.Toronto.foreign_pct|pc}}) are the big examples of cities that host American productions. These are the classic stand-ins: Toronto for New York, Budapest for half of Europe, Malta's water tanks for the open sea.</p>
+<div class="figure"><p class="fig-h">Filming cities where foreign productions are most common</p><p class="fig-sub">Share of films with a location in each city that are foreign productions; cities with at least 25 films with a known origin.</p><div class="chart" id="standChart"></div></div>
+<p>A caution: Wikidata does not say what a location stood in for. A separate property records where a film is set, but it is not in this data, so I cannot show that Toronto played New York in a given film, only that most of the films shot there come from elsewhere. And countries such as Morocco, New Zealand and Iceland, which host many foreign films, are mostly recorded only as the whole country: {{hosts.nzl.n|int}} films were shot in New Zealand, but only {{hubs.pick.Wellington.n|int}} have a location in Wellington and {{hubs.pick.Auckland.n|int}} in Auckland.</p>
+
+<h2><span class="n">05 · James Bond</span>The 25 Eon films</h2>
+<p>The Bond films are the obvious test of a map like this. Wikidata gives {{bond.n_pairs|int}} filming locations for the 25 official Eon Productions films, from Dr. No ({{bond.films.0.y|raw}}) to No Time to Die ({{bond.films.24.y|raw}}): {{bond.n_locs|int}} distinct places in {{bond.n_countries|int}} countries and territories. Pinewood Studios is listed for {{bond.pinewood|int}} of the 25. Beyond the UK, the United States appears for {{bond.countries.1.2|int}} films, then Switzerland, Italy and the Bahamas ({{bond.countries.2.2|int}} each) and Spain ({{bond.countries.5.2|int}}).</p>
+<div class="cards" id="bondCards"></div>
+<div class="figure"><p class="fig-h">Every Bond film and its recorded locations</p><p class="fig-sub">Click a film to show its locations on the map above.</p><div class="tablebox"><table class="bt" id="bondTable"></table></div></div>
+<p>The table is also a lesson in coverage. Spectre has {{bond.most.n|int}} locations in Wikidata and Licence to Kill {{bond.fewest.n|int}}; the Bond films before 1990 average {{bond.early|f1}} locations each, those since 2006 average {{bond.late|f1}}. That is not because the early films travelled less; Goldfinger went to Switzerland, Kentucky and Miami. It is because recent films are documented in more detail.</p>
+<p class="pull">The Bond films before 1990 have {{bond.early|f1}} recorded locations each. Those since 2006 have {{bond.late|f1}}.</p>
+
+<h2><span class="n">06 · The gaps</span>What the record leaves out</h2>
+<p>This is a map of documented filming, not of filming. The films come from {{origins.n_countries|int}} countries, but the United States alone accounts for {{source.us_pct|pc}} of them, and Indonesia for {{origins.top.1.pct|pc}}, almost all entered with the single location "Indonesia". India, which makes more films each year than any other country, has {{origins.ind|int}} here; China {{origins.chn|int}} and Nigeria {{origins.nga|int}}. Wikidata's film coverage follows Wikipedia's, and Wikipedia's follows the languages and fan bases of its editors.</p>
+<div class="figure"><p class="fig-h">How precise are the locations?</p><p class="fig-sub">The {{source.n_pairs|int}} film-location records by what the location is. Only cities, towns and sites go on the point map.</p><div class="chart" id="levChart"></div></div>
+<p>Popular films are also better described. Among films with fewer than five sitelinks, {{pop.tiers.0.pct|pc}} were shot abroad and they average {{pop.tiers.0.locs|f1}} locations; among films with 50 or more, {{pop.tiers.3.pct|pc}} and {{pop.tiers.3.locs|f1}} locations. Some of that is real (big films travel), but some is simply that someone has written it down. {{source.one_loc_pct|pc}} of all films have just one recorded location.</p>
+<div class="figure"><p class="fig-h">Better-known films travel more, or are recorded in more detail</p><p class="fig-sub">Films by popularity (Wikidata sitelinks): share shot at least partly abroad.</p><div class="chart" id="popChart"></div></div>
+
+<h2><span class="n">07 · How I did this</span>Methods and caveats</h2>
+<p><b>Films and places.</b> Every Wikidata item that is an instance of film (Q11424) with a filming location (P915) that has coordinates, from one QLever query: {{source.n_rows|int}} rows, because a film repeats for every combination of release date, country of origin and location country. I kept one record per film and per location: {{source.n_films|int}} films, {{source.n_locs|int}} locations and {{source.n_pairs|int}} film-location pairs. A film's year is its earliest publication date ({{source.n_dated|int}} have one). {{source.n_notitle|int}} films have no English title in Wikidata and are shown by their Wikidata ID.</p>
+<p><b>Countries, states and sites.</b> Each location is a country (its Wikidata ID is a country's, a UK nation's, a former state's or a continent's; {{source.lev.country|int}} locations), a region (a state, province or region in Natural Earth, or a large named area; {{source.lev.region|int}}), a city or town (its name matches a Natural Earth populated place within 40 km; {{source.lev.city|int}}), or a site (anything else, from studios to streets and villages; {{source.lev.site|int}}). Country and region points are centroids and are never mapped as places. Small territories such as Hong Kong, Malta, Monaco and Singapore count as cities. Its country is the present-day country its point falls in.</p>
+<p><b>Home and abroad.</b> A film's countries of origin (P495) are its home; a film from the Soviet Union, Yugoslavia or Czechoslovakia is at home in any successor state, and crown dependencies and overseas territories count as home for the UK, the United States, France, the Netherlands and Denmark. {{source.n_no_origin|int}} films have no country of origin and are left out of these figures.</p>
+<p><b>Cities.</b> For the city rankings each city, town or site is grouped with the nearest Natural Earth place of 250,000 people or more within 32 km. <b>Bond.</b> The 25 Eon films are a hand list of Wikidata IDs (in the code), each checked against title and year; the 1967 Casino Royale, not an Eon film, is left out.</p>
+<p><b>What this is not.</b> It is not a complete list of where films were shot, and it cannot say where a film is set, what a location stood in for, or how long a crew spent there. Popularity is Wikimedia sitelinks, not box office.</p>
+<details><summary>Sources and licences</summary>
+<ul>
+<li>Wikidata, via QLever (https://qlever.cs.uni-freiburg.de/wikidata), retrieved {{meta.retrieved|raw}}. CC0.</li>
+<li>Natural Earth countries, states and provinces, and populated places (public domain).</li>
+<li>Base map tiles © Esri.</li>
+</ul></details>
+
+<div class="cta"><a class="p" href="https://doi.org/{{meta.doi|raw}}">Read the paper</a><a href="https://github.com/Tristan-Hotham/film-locations">Data and code</a><a href="{{meta.blog|raw}}">Blog post</a></div>
+
+<footer>
+<p>Dr Tristan Hotham, Independent researcher. ORCID <a href="https://orcid.org/0000-0003-4931-9349">0000-0003-4931-9349</a>.</p>
+<p>Cite as: Hotham, T. (2026) Where every film was shot: {{source.n_films|int}} films and their filming locations in Wikidata. Zenodo. <a href="https://doi.org/{{meta.doi|raw}}">https://doi.org/{{meta.doi|raw}}</a></p>
+<p>Licence: derived data and text CC BY 4.0 (Wikidata is CC0), code MIT.</p>
+<p>I wrote the text, with drafting and editing assistance from Claude (Anthropic), which also helped prepare the analysis code. I reviewed and checked all text and results.</p>
+</footer>
+</div>
+<div class="tip" id="tip"></div>
+<button class="btn theme" id="theme" aria-label="Toggle dark mode">◐</button>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const R = /*RESULTS*/;
+const SITE = /*SITE*/;
+const WORLD = /*WORLD*/;
+const CITIES = /*CITIES*/;
+const fmt = n => n == null || n === "" ? "n/a" : Math.round(n).toLocaleString("en-GB");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const tip = document.getElementById("tip");
+function showTip(h, x, y) { tip.innerHTML = h; tip.style.display = "block"; const w = tip.offsetWidth; x = Math.max(w / 2 + 8, Math.min(innerWidth - w / 2 - 8, x)); tip.style.left = x + scrollX + "px"; tip.style.top = y + scrollY + "px"; }
+function hideTip() { tip.style.display = "none"; }
+document.addEventListener("click", hideTip);
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+const lbl = (svg, x, y, s, cls = "lab", anchor = "start") => { const t = el("text", { x, y, class: cls, "text-anchor": anchor }, svg); t.textContent = s; return t; };
+const redraws = [];
+function resp(box, render) { let last = 0; const go = force => { const w = Math.max(280, Math.round(box.clientWidth)); if (!force && Math.abs(w - last) < 4) return; last = w; box.innerHTML = ""; render(w, w < 560); }; new ResizeObserver(() => go()).observe(box); go(); redraws.push(() => go(true)); }
+const isDark = () => { const r = document.documentElement; return r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const CN = iso => (SITE.cname[iso] || iso);
+const small = () => innerWidth < 900;
+const wdlink = (q, t) => `<a href="https://www.wikidata.org/wiki/${esc(q)}" target="_blank" rel="noopener">${esc(t || "Wikidata")}</a>`;
+const DECS = [1900, 1910, 1920, 1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020];
+const RAMP = ["#F3E2B3", "#EBBE69", "#DE8A3A", "#C2512C", "#932233", "#5A1238", "#2A0B2E"];
+const hex2 = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+function mix(a, b, t) { const A = hex2(a), B = hex2(b); return "#" + A.map((x, i) => Math.round(x + (B[i] - x) * t).toString(16).padStart(2, "0")).join(""); }
+function ramp(t) { t = Math.max(0, Math.min(1, t)) * (RAMP.length - 1); const i = Math.min(RAMP.length - 2, Math.floor(t)); return mix(RAMP[i], RAMP[i + 1], t - i); }
+const HOME = "#9A8A74", ABR = "#1F7A85", GOLD = "#C9971C";
+function shareCol(p) { return mix(HOME, ABR, p); }
+
+/* hero mark: a film reel */
+(function () {
+  const g = document.getElementById("heroMark");
+  el("circle", { cx: 60, cy: 60, r: 52, fill: "none", stroke: "currentColor", "stroke-width": 3 }, g);
+  el("circle", { cx: 60, cy: 60, r: 8, fill: "currentColor" }, g);
+  const cols = ["#A3202E", "#1F7A85", "#C9971C", "#A3202E", "#1F7A85", "#C9971C"];
+  for (let i = 0; i < 6; i++) { const a = -Math.PI / 2 + i * Math.PI / 3; el("circle", { cx: 60 + 30 * Math.cos(a), cy: 60 + 30 * Math.sin(a), r: 12, fill: cols[i], stroke: "currentColor", "stroke-width": 2 }, g); }
+})();
+
+/* ---------- map machinery ---------- */
+const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
+const ESRI_ATT = 'Tiles &copy; Esri, HERE, Garmin, USGS, NGA, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, and the GIS user community';
+const LYDEF = { base: "plain", hills: true, hillK: 40, labels: false, labelK: 80, names: true, nameLvl: 1, cnames: true, borders: true, films: true, size: 3, host: false, hostK: 60, coarse: false, bond: false };
+const LY = { ...LYDEF };
+try { Object.assign(LY, JSON.parse(localStorage.getItem("filmloc_layers") || "{}")); } catch (e) {}
+LY.bond = false;
+const saveLY = () => { try { localStorage.setItem("filmloc_layers", JSON.stringify(LY)); } catch (e) {} };
+const map = L.map("map", { minZoom: 1, maxZoom: 14, maxBounds: [[-75, -200], [86, 200]], zoomSnap: .5, worldCopyJump: false }).setView([30, -10], small() ? 1 : 2);
+["hills:250", "fill:400", "labels:450", "pts:600", "names:620"].forEach(s => { const [n, z] = s.split(":"); map.createPane(n); map.getPane(n).style.zIndex = z; });
+["hills", "labels", "names", "pts"].forEach(n => map.getPane(n).style.pointerEvents = "none");
+let base = null, hills = null, labels = null; const names = L.layerGroup(), cnames = L.layerGroup();
+function setTiles() {
+  [base, labels, hills].forEach(l => { if (l) map.removeLayer(l); });
+  const t = isDark() ? "Dark" : "Light";
+  const url = LY.base === "relief" ? ESRI + "World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}" : LY.base === "satellite" ? ESRI + "World_Imagery/MapServer/tile/{z}/{y}/{x}" : `${ESRI}Canvas/World_${t}_Gray_Base/MapServer/tile/{z}/{y}/{x}`;
+  base = L.tileLayer(url, { maxZoom: 16, maxNativeZoom: LY.base === "relief" ? 13 : 16, attribution: ESRI_ATT }).addTo(map);
+  hills = L.tileLayer(ESRI + "Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16, maxNativeZoom: 16, pane: "hills" });
+  labels = L.tileLayer(`${ESRI}Canvas/World_${t}_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 16, pane: "labels" });
+  applyLayers();
+}
+function applyLayers() {
+  if (!base) return;
+  if (LY.hills) { hills.addTo(map); hills.setOpacity(Math.min(1, .15 + LY.hillK / 120)); } else map.removeLayer(hills);
+  if (LY.labels) { labels.addTo(map); labels.setOpacity(LY.labelK / 100); } else map.removeLayer(labels);
+  if (LY.names) names.addTo(map); else map.removeLayer(names);
+  if (LY.cnames) cnames.addTo(map); else map.removeLayer(cnames);
+  document.getElementById("bondBtn").setAttribute("aria-pressed", LY.bond);
+  cLayer.setStyle(cStyle); placeNames(); dots.draw();
+}
+function placeNames() {
+  names.clearLayers(); cnames.clearLayers();
+  const z = map.getZoom(), bb = map.getBounds().pad(.05); const boxes = [];
+  if (LY.names) {
+    const minPop = [[2, 8e6], [3, 3e6], [4, 1e6], [5, 4e5], [6, 1.5e5], [99, 4e4]].find(([zz]) => z < zz + (LY.nameLvl === 2 ? 1.5 : LY.nameLvl === 0 ? -1 : 0))[1] * (LY.nameLvl === 0 ? 2 : 1);
+    let n = 0;
+    for (const c of CITIES) {
+      if (c.pop < minPop || !bb.contains([c.lat, c.lon])) continue;
+      const pt = map.latLngToContainerPoint([c.lat, c.lon]), big = c.pop >= 5e6;
+      const bx = [pt.x - 4, pt.y - 8, pt.x + 10 + c.name.length * (big ? 6.9 : 6.3), pt.y + 7];
+      if (boxes.some(o => bx[0] < o[2] && bx[2] > o[0] && bx[1] < o[3] && bx[3] > o[1])) continue;
+      boxes.push(bx); L.marker([c.lat, c.lon], { pane: "names", interactive: false, keyboard: false, icon: L.divIcon({ className: "cityL" + (big ? "" : " s"), html: `<i></i>${esc(c.name)}`, iconSize: null, iconAnchor: [3, 6] }) }).addTo(names);
+      if (++n >= 120) break;
+    }
+  }
+  if (LY.cnames && z >= 3 && z < 7) {
+    WORLD.features.forEach(f => { const g = SITE.cpos[f.properties.iso]; if (!g || !bb.contains([g[1], g[0]])) return; const nm = CN(f.properties.iso);
+      if (z < 4 && (g[2] || 0) < 2e7) return; const pt = map.latLngToContainerPoint([g[1], g[0]]), w = nm.length * 7.2;
+      const bx = [pt.x - w / 2, pt.y - 7, pt.x + w / 2, pt.y + 7]; if (boxes.some(o => bx[0] < o[2] && bx[2] > o[0] && bx[1] < o[3] && bx[3] > o[1])) return; boxes.push(bx);
+      L.marker([g[1], g[0]], { pane: "names", interactive: false, keyboard: false, icon: L.divIcon({ className: "cntL", html: esc(nm), iconSize: [w, 14], iconAnchor: [w / 2, 7] }) }).addTo(cnames); });
+  }
+}
+(function layerControl() {
+  const Ctl = L.Control.extend({ options: { position: "topright" }, onAdd() {
+    const d = L.DomUtil.create("div"); L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
+    d.innerHTML = `<button class="lyrBtn" aria-expanded="false">Map layers</button>
+<div class="lyrPanel" hidden>
+ <div class="row"><label style="font-weight:600">Base map</label><div class="sub"><select data-k="base" aria-label="Base map"><option value="plain">Plain grey</option><option value="relief">Shaded relief</option><option value="satellite">Satellite</option></select></div></div>
+ <div class="row"><label><input type="checkbox" data-k="hills"> Hills and mountains</label><div class="sub"><span>strength</span><input type="range" data-k="hillK" min="10" max="100" step="5" aria-label="Hill shading strength"></div></div>
+ <div class="row"><label><input type="checkbox" data-k="labels"> Map labels</label><div class="sub"><span>strength</span><input type="range" data-k="labelK" min="20" max="100" step="5" aria-label="Map label strength"></div></div>
+ <div class="row"><label><input type="checkbox" data-k="names"> Bold city names</label><div class="sub"><span>how many</span><select data-k="nameLvl" aria-label="How many city names"><option value="0">Biggest only</option><option value="1">Some</option><option value="2">Lots</option></select></div></div>
+ <div class="row"><label><input type="checkbox" data-k="cnames"> Country names</label></div>
+ <div class="row"><label><input type="checkbox" data-k="borders"> Borders</label></div>
+ <div class="hd">Films</div>
+ <div class="row"><label><input type="checkbox" data-k="films"> Filming locations</label><div class="sub"><span>size</span><input type="range" data-k="size" min="1.5" max="6" step=".5" aria-label="Symbol size"></div></div>
+ <div class="row"><label><input type="checkbox" data-k="coarse"> Whole countries and states (dashed rings)</label></div>
+ <div class="row"><label><input type="checkbox" data-k="host"> Countries by foreign films hosted</label><div class="sub"><span>strength</span><input type="range" data-k="hostK" min="10" max="100" step="5" aria-label="Country colour strength"></div></div>
+ <div class="row"><label><input type="checkbox" data-k="bond"> James Bond locations</label></div>
+ <button class="reset">Reset layers</button>
+</div>`;
+    return d; } });
+  map.addControl(new Ctl());
+  const box = map.getContainer(), btn = box.querySelector(".lyrBtn"), pan = box.querySelector(".lyrPanel");
+  btn.onclick = () => { const o = pan.hidden; pan.hidden = !o; btn.setAttribute("aria-expanded", o); };
+  const sync = () => pan.querySelectorAll("[data-k]").forEach(i => { const k = i.dataset.k; if (i.type === "checkbox") i.checked = LY[k]; else i.value = LY[k]; });
+  window.syncLayers = sync;
+  pan.querySelectorAll("[data-k]").forEach(i => i.addEventListener(i.type === "range" ? "input" : "change", () => {
+    const k = i.dataset.k; LY[k] = i.type === "checkbox" ? i.checked : (k === "base" ? i.value : +i.value);
+    if (k === "hillK") LY.hills = true; if (k === "labelK") LY.labels = true; if (k === "nameLvl") LY.names = true; if (k === "hostK") LY.host = true; if (k === "size") LY.films = true;
+    sync(); saveLY(); if (k === "base") setTiles(); else applyLayers(); legend(); if (k === "bond") side();
+  }));
+  pan.querySelector(".reset").onclick = () => { Object.assign(LY, LYDEF); saveLY(); sync(); setTiles(); legend(); };
+  sync();
+})();
+const Note = L.Control.extend({ options: { position: "bottomleft" }, onAdd() { const d = L.DomUtil.create("div", "mapnote"); d.id = "mapnote"; L.DomEvent.disableClickPropagation(d); return d; } });
+map.addControl(new Note());
+L.control.scale({ imperial: false, position: "bottomright" }).addTo(map);
+
+/* ---------- state and filters ---------- */
+const S = { dec: 0, view: "hex", met: "n", ha: "all", orig: "", pop: 0, playing: false, sel: null };
+// sel: {t:"loc", i} | {t:"hex", key} | {t:"film", f} | {t:"country", iso} | {t:"coarse", i} | {t:"bondloc", key}
+let LOCS = null, COARSE = null, FILMS = null, LF = null, CF = null, ACT = null, ACTC = null, BONDF = [];
+function passFilm(fi) {
+  const f = FILMS[fi];
+  if (S.dec && !(f[1] >= S.dec && f[1] < S.dec + 10)) return false;
+  if (S.pop && f[3] < S.pop) return false;
+  if (S.orig && !(("," + f[2] + ",").includes("," + S.orig + ","))) return false;
+  return true;
+}
+function passPair(fi, iso) {
+  if (S.ha === "all") return true;
+  const ab = FILMS[fi][9]; if (ab === "?" || !iso) return false;
+  const isAb = ab && ("," + ab + ",").includes("," + iso + ",");
+  return S.ha === "abroad" ? isAb : !isAb;
+}
+function recompute() {
+  if (!LOCS) return;
+  const ok = new Uint8Array(FILMS.length); for (let i = 0; i < FILMS.length; i++) ok[i] = passFilm(i) ? 1 : 0;
+  ACT = LF.map((fs, i) => fs.filter(fi => ok[fi] && passPair(fi, LOCS[i][3])));
+  ACTC = CF.map((fs, i) => fs.filter(fi => ok[fi] && passPair(fi, COARSE[i][3])));
+  Z = -1; dots.draw(); side(); legend();
+}
+const filmAbroadAt = (fi, iso) => { const ab = FILMS[fi][9]; return ab && ab !== "?" && iso && ("," + ab + ",").includes("," + iso + ","); };
+const val = fs => S.met === "w" ? fs.reduce((s, fi) => s + FILMS[fi][3], 0) : fs.length;
+
+/* ---------- countries ---------- */
+const hostMax = Math.max(...Object.values(SITE.host).map(h => h[2]));
+function cStyle(f) {
+  const iso = f.properties.iso, bd = css("--border") || "#999", h = SITE.host[iso];
+  const sel = S.sel && S.sel.t === "country" && S.sel.iso === iso;
+  const on = LY.host && h && h[2] > 0;
+  return { color: sel ? css("--fg") : bd, weight: LY.borders ? (sel ? 2.4 : .6) : (sel ? 2 : 0), fillColor: on ? mix("#DCEFF0", "#0E4A52", Math.log(1 + h[2]) / Math.log(1 + hostMax)) : css("--land"), fillOpacity: on ? .75 * LY.hostK / 100 : .2 };
+}
+const cLayer = L.geoJSON(WORLD, { pane: "fill", style: cStyle, onEachFeature: (f, l) => {
+  l.on("click", e => { L.DomEvent.stopPropagation(e); if (!hitMap(e.containerPoint)) pickCountry(f.properties.iso, false); });
+  l.on("mousemove", e => { const h = hover(e.containerPoint); map.getContainer().style.cursor = h ? "pointer" : ""; const r = map.getContainer().getBoundingClientRect(); showTip(h || cTip(f.properties.iso), r.left + e.containerPoint.x, r.top + e.containerPoint.y); });
+  l.on("mouseout", hideTip);
+} }).addTo(map);
+map.on("click", e => hitMap(e.containerPoint));
+function cTip(iso) { const h = SITE.host[iso]; return `<b>${esc(CN(iso))}</b><br>` + (h ? `${fmt(h[0])} films shot here, ${fmt(h[2])} foreign (${h[3].toFixed(0)}%)` : "no films in the data"); }
+
+/* ---------- canvas: hex bins, places, rings, Bond ---------- */
+let Z = -1, XY = null, XYC = null, HEX = new Map(), VISP = [], BONDP = [];
+const HR = () => 12 + LY.size * 3;   // hex radius in px
+function hexKey(x, y, r) { const q = (Math.sqrt(3) / 3 * x - y / 3) / r, rr = (2 / 3 * y) / r; let X = q, Zc = rr, Y = -X - Zc; let rx = Math.round(X), ry = Math.round(Y), rz = Math.round(Zc); const dx = Math.abs(rx - X), dy = Math.abs(ry - Y), dz = Math.abs(rz - Zc); if (dx > dy && dx > dz) rx = -ry - rz; else if (dy > dz) ry = -rx - rz; else rz = -rx - ry; return [rx, rz]; }
+function hexCentre(q, r, R0) { return [R0 * Math.sqrt(3) * (q + r / 2), R0 * 1.5 * r]; }
+const Dots = L.Layer.extend({
+  onAdd(m) { this._c = L.DomUtil.create("canvas", "dotcanvas"); m.getPane("pts").appendChild(this._c); m.on("moveend zoomend resize viewreset", this._reset, this); m.on("zoomstart", () => this._c.style.opacity = 0); this._reset(); },
+  onRemove(m) { L.DomUtil.remove(this._c); m.off("moveend zoomend resize viewreset", this._reset, this); },
+  _reset() { const s = map.getSize(), d = devicePixelRatio || 1; L.DomUtil.setPosition(this._c, map.containerPointToLayerPoint([0, 0])); this._c.width = s.x * d; this._c.height = s.y * d; this._c.style.width = s.x + "px"; this._c.style.height = s.y + "px"; this._c.style.opacity = 1; this.draw(); },
+  draw() {
+    if (!this._c) return; const ctx = this._c.getContext("2d"), d = devicePixelRatio || 1; ctx.setTransform(d, 0, 0, d, 0, 0); ctx.clearRect(0, 0, this._c.width, this._c.height);
+    HEX = new Map(); VISP = []; BONDP = [];
+    if (!LOCS || !ACT) return;
+    const z = map.getZoom(); if (z !== Z) { Z = z; XY = new Float64Array(LOCS.length * 2); LOCS.forEach((p, i) => { const q = map.project([p[1], p[0]], z); XY[2 * i] = q.x; XY[2 * i + 1] = q.y; }); XYC = new Float64Array(COARSE.length * 2); COARSE.forEach((p, i) => { const q = map.project([p[1], p[0]], z); XYC[2 * i] = q.x; XYC[2 * i + 1] = q.y; }); }
+    const o = map.getPixelOrigin(), off = map.containerPointToLayerPoint([0, 0]), ox = o.x + off.x, oy = o.y + off.y, sz = map.getSize(), dark = isDark();
+    const ink = dark ? "#EEEBE6" : "#1C1A1F", halo = dark ? "rgba(0,0,0,.6)" : "rgba(255,255,255,.85)";
+    if (LY.coarse) {
+      const mx = Math.max(1, ...ACTC.map(val));
+      ctx.setLineDash([4, 3]); ctx.lineWidth = 1.6;
+      ACTC.forEach((fs, i) => { if (!fs.length) return; const x = XYC[2 * i] - ox, y = XYC[2 * i + 1] - oy; if (x < -60 || y < -60 || x > sz.x + 60 || y > sz.y + 60) return;
+        const r = 6 + 34 * Math.sqrt(val(fs) / mx); ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.strokeStyle = COARSE[i][4] === 0 ? (dark ? "rgba(230,200,140,.85)" : "rgba(120,90,40,.75)") : (dark ? "rgba(200,200,210,.7)" : "rgba(90,90,100,.6)"); ctx.stroke(); VISP.push({ t: "coarse", i, x, y, r }); });
+      ctx.setLineDash([]);
+    }
+    if (LY.films) {
+      if (S.view === "hex") {
+        const R0 = HR();
+        for (let i = 0; i < LOCS.length; i++) { const fs = ACT[i]; if (!fs.length) continue; const x = XY[2 * i] - ox, y = XY[2 * i + 1] - oy; if (x < -R0 * 2 || y < -R0 * 2 || x > sz.x + R0 * 2 || y > sz.y + R0 * 2) continue;
+          const [q, r] = hexKey(x + ox, y + oy, R0), k = q + "," + r; let h = HEX.get(k); if (!h) { h = { q, r, films: new Set(), locs: [] }; HEX.set(k, h); } fs.forEach(fi => h.films.add(fi)); h.locs.push(i); }
+        let mx = 1; HEX.forEach(h => { h.v = S.met === "w" ? [...h.films].reduce((s, fi) => s + FILMS[fi][3], 0) : h.films.size; mx = Math.max(mx, h.v); });
+        const lm = Math.log(1 + mx);
+        HEX.forEach((h, k) => { const [cx, cy] = hexCentre(h.q, h.r, R0), x = cx - ox, y = cy - oy; ctx.beginPath(); for (let j = 0; j < 6; j++) { const a = Math.PI / 6 + j * Math.PI / 3; ctx.lineTo(x + R0 * .97 * Math.cos(a), y + R0 * .97 * Math.sin(a)); } ctx.closePath();
+          ctx.fillStyle = ramp(Math.log(1 + h.v) / lm); ctx.globalAlpha = .88; ctx.fill(); ctx.globalAlpha = 1;
+          if (S.sel && S.sel.t === "hex" && S.sel.key === k) { ctx.strokeStyle = ink; ctx.lineWidth = 2.4; ctx.stroke(); }
+          h.x = x; h.y = y; });
+      } else {
+        const ord = []; for (let i = 0; i < LOCS.length; i++) if (ACT[i].length) ord.push(i);
+        const vs = ord.map(i => val(ACT[i])), mx = Math.max(1, ...vs), k0 = (LY.size / 3) * (z < 3 ? .8 : z < 5 ? 1 : z < 8 ? 1.3 : 1.7);
+        const idx = ord.map((i, j) => [i, vs[j]]).sort((a, b) => b[1] - a[1]);
+        ctx.lineWidth = .8;
+        for (const [i, v] of idx) { const x = XY[2 * i] - ox, y = XY[2 * i + 1] - oy; if (x < -40 || y < -40 || x > sz.x + 40 || y > sz.y + 40) continue;
+          const r = Math.max(2, k0 * (2 + 26 * Math.sqrt(v / mx))), fs = ACT[i], ab = fs.filter(fi => filmAbroadAt(fi, LOCS[i][3])).length, kn = fs.filter(fi => FILMS[fi][9] !== "?").length;
+          ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fillStyle = kn ? shareCol(ab / kn) : "#999"; ctx.globalAlpha = .8; ctx.fill(); ctx.globalAlpha = 1; ctx.strokeStyle = halo; ctx.stroke();
+          VISP.push({ t: "loc", i, x, y, r }); }
+      }
+    }
+    if (LY.bond && BONDF.length) {
+      const pts = new Map();
+      BONDF.forEach(fi => { FILMS[fi][7].forEach(i => { const k = "l" + i; if (!pts.has(k)) pts.set(k, { x: XY[2 * i] - ox, y: XY[2 * i + 1] - oy, films: [], name: LOCS[i][2], c: false }); pts.get(k).films.push(fi); });
+        FILMS[fi][8].forEach(i => { const k = "c" + i; if (!pts.has(k)) pts.set(k, { x: XYC[2 * i] - ox, y: XYC[2 * i + 1] - oy, films: [], name: COARSE[i][2], c: true }); pts.get(k).films.push(fi); }); });
+      pts.forEach((p, k) => { const r = 5 + 2.2 * Math.sqrt(p.films.length) * (LY.size / 3); ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 7);
+        if (p.c) { ctx.setLineDash([3, 2]); ctx.strokeStyle = GOLD; ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]); }
+        else { ctx.fillStyle = GOLD; ctx.fill(); ctx.strokeStyle = "#1C1A1F"; ctx.lineWidth = 1.2; ctx.stroke(); }
+        if (S.sel && S.sel.t === "bondloc" && S.sel.key === k) { ctx.beginPath(); ctx.arc(p.x, p.y, r + 4, 0, 7); ctx.strokeStyle = ink; ctx.lineWidth = 2.2; ctx.stroke(); }
+        p.k = k; p.r = r; BONDP.push(p); });
+    }
+    if (S.sel && S.sel.t === "film") {
+      const f = FILMS[S.sel.f]; ctx.lineWidth = 2.4;
+      f[7].forEach(i => { const x = XY[2 * i] - ox, y = XY[2 * i + 1] - oy; ctx.beginPath(); ctx.arc(x, y, 9, 0, 7); ctx.fillStyle = "rgba(163,32,46,.25)"; ctx.fill(); ctx.strokeStyle = ink; ctx.stroke(); });
+      ctx.setLineDash([4, 3]); f[8].forEach(i => { const x = XYC[2 * i] - ox, y = XYC[2 * i + 1] - oy; ctx.beginPath(); ctx.arc(x, y, 14, 0, 7); ctx.strokeStyle = ink; ctx.stroke(); }); ctx.setLineDash([]);
+    }
+    if (S.sel && (S.sel.t === "loc")) { const i = S.sel.i, x = XY[2 * i] - ox, y = XY[2 * i + 1] - oy; ctx.beginPath(); ctx.arc(x, y, 12, 0, 7); ctx.strokeStyle = ink; ctx.lineWidth = 2.4; ctx.stroke(); }
+  }
+});
+const dots = new Dots().addTo(map);
+function findAt(cp) {
+  if (!LOCS) return null;
+  for (const p of BONDP) { const dx = p.x - cp.x, dy = p.y - cp.y; if (dx * dx + dy * dy <= (p.r + 3) ** 2) return { t: "bondloc", key: p.k, p }; }
+  if (LY.films && S.view === "places") { let best = null, bd = 1e9; for (const p of VISP) { if (p.t !== "loc") continue; const d = Math.hypot(p.x - cp.x, p.y - cp.y); if (d <= Math.max(p.r, 6) && d < bd) { bd = d; best = p; } } if (best) return { t: "loc", i: best.i }; }
+  if (LY.films && S.view === "hex") { const o = map.getPixelOrigin(), off = map.containerPointToLayerPoint([0, 0]); const [q, r] = hexKey(cp.x + o.x + off.x, cp.y + o.y + off.y, HR()); const k = q + "," + r; if (HEX.has(k)) return { t: "hex", key: k }; }
+  for (const p of VISP) { if (p.t !== "coarse") continue; const d = Math.hypot(p.x - cp.x, p.y - cp.y); if (Math.abs(d - p.r) < 6 || d < 7) return { t: "coarse", i: p.i }; }
+  return null;
+}
+function hover(cp) {
+  const h = findAt(cp); if (!h) return null;
+  if (h.t === "bondloc") return `<b>${esc(h.p.name)}</b><br>${h.p.films.length} Bond film${h.p.films.length > 1 ? "s" : ""}`;
+  if (h.t === "loc") { const fs = ACT[h.i]; return `<b>${esc(LOCS[h.i][2])}</b><br>${fmt(fs.length)} film${fs.length === 1 ? "" : "s"} · ${esc(CN(LOCS[h.i][3]))}`; }
+  if (h.t === "hex") { const x = HEX.get(h.key); const top = x.locs.slice().sort((a, b) => ACT[b].length - ACT[a].length)[0]; return `<b>${fmt(x.films.size)} film${x.films.size === 1 ? "" : "s"}</b><br>${x.locs.length} place${x.locs.length > 1 ? "s" : ""}, mainly ${esc(LOCS[top][2])}`; }
+  if (h.t === "coarse") return `<b>${esc(COARSE[h.i][2])}</b> (whole ${COARSE[h.i][4] === 0 ? "country" : "state or region"})<br>${fmt(ACTC[h.i].length)} films`;
+}
+function hitMap(cp) { const h = findAt(cp); if (!h) return false; S.sel = h.t === "bondloc" ? { t: "bondloc", key: h.key, p: h.p } : h; map.closePopup(); dots.draw(); side(); cLayer.setStyle(cStyle); return true; }
+map.on("mousemove", e => { const h = hover(e.containerPoint); map.getContainer().style.cursor = h ? "pointer" : ""; if (h) { const r = map.getContainer().getBoundingClientRect(); showTip(h, r.left + e.containerPoint.x, r.top + e.containerPoint.y); } });
+
+/* ---------- side panel ---------- */
+let MORE = 40;
+function filmLi(fi, iso) {
+  const f = FILMS[fi], ab = iso ? filmAbroadAt(fi, iso) : false;
+  return `<li><span class="go" data-f="${fi}">${esc(f[0])}</span> <small>${f[1] || "no year"}${f[2] ? " · " + esc(f[2].split(",").map(CN).join(", ")) : ""}</small>${f[6] ? '<span class="ab b">007</span>' : ""}${ab ? '<span class="ab a">abroad</span>' : ""}</li>`;
+}
+function filmList(fs, iso) {
+  const s = fs.slice().sort((a, b) => FILMS[b][3] - FILMS[a][3]);
+  let h = `<ol>` + s.slice(0, MORE).map(fi => filmLi(fi, iso)).join("") + `</ol>`;
+  if (s.length > MORE) h += `<button class="more" data-more="1">Show ${Math.min(200, s.length - MORE)} more of ${fmt(s.length - MORE)}</button>`;
+  return h;
+}
+function filterNote() {
+  const p = []; if (S.dec) p.push(S.dec + "s"); if (S.orig) p.push("made in " + CN(S.orig)); if (S.pop) p.push(S.pop + "+ sitelinks"); if (S.ha !== "all") p.push(S.ha === "home" ? "shot at home" : "shot abroad");
+  return p.length ? `<p class="sub">Filtered: ${esc(p.join(", "))}</p>` : "";
+}
+function side() {
+  const box = document.getElementById("side"); let h = "";
+  if (!LOCS) { box.innerHTML = `<p class="sub">Loading ${fmt(R.source.n_films)} films...</p>`; return; }
+  const sel = S.sel;
+  if (sel && sel.t === "loc") {
+    const L0 = LOCS[sel.i], fs = ACT[sel.i], all = LF[sel.i], ab = fs.filter(fi => filmAbroadAt(fi, L0[3])).length;
+    h = `<button class="back">Back</button><h4>${L0[4] === 0 ? "City or town" : "Filming site"} · ${esc(CN(L0[3]))}</h4><div class="big">${esc(L0[2])}</div>
+<table><tr><td>Films here (shown)</td><td class="num">${fmt(fs.length)}</td></tr><tr><td>All films here</td><td class="num">${fmt(all.length)}</td></tr><tr><td>Foreign productions (shown)</td><td class="num">${fmt(ab)}</td></tr>${L0[6] && L0[6] !== L0[2] ? `<tr><td>Counted for city</td><td class="num">${esc(L0[6])}</td></tr>` : ""}</table>
+<p>${wdlink(L0[5], "Wikidata " + L0[5])}</p>${filterNote()}<h4>Films, most popular first</h4>` + filmList(fs, L0[3]);
+    note(`<b>${esc(L0[2])}</b>: ${fmt(fs.length)} films`);
+  } else if (sel && sel.t === "hex") {
+    const x = HEX.get(sel.key); if (!x) { S.sel = null; return side(); }
+    const ls = x.locs.slice().sort((a, b) => ACT[b].length - ACT[a].length);
+    h = `<button class="back">Back</button><h4>This hexagon</h4><div class="big">${fmt(x.films.size)} films</div><p class="sub">${ls.length} filming place${ls.length > 1 ? "s" : ""}. Zoom in for finer hexagons, or switch to Places.</p>${filterNote()}<h4>Places</h4><ol>` +
+      ls.slice(0, 15).map(i => `<li><span class="go" data-l="${i}">${esc(LOCS[i][2])}</span> <small>${fmt(ACT[i].length)} · ${esc(CN(LOCS[i][3]))}</small></li>`).join("") + `</ol><h4>Films, most popular first</h4>` + filmList([...x.films]);
+    note(`<b>${fmt(x.films.size)} films</b> in ${ls.length} place${ls.length > 1 ? "s" : ""}`);
+  } else if (sel && sel.t === "coarse") {
+    const c = COARSE[sel.i], fs = ACTC[sel.i];
+    h = `<button class="back">Back</button><h4>Whole ${c[4] === 0 ? "country" : "state or region"}</h4><div class="big">${esc(c[2])}</div><p class="sub">These films give only "${esc(c[2])}" as a location, or give it as well as more precise places. They are not mapped as a point.</p><table><tr><td>Films (shown)</td><td class="num">${fmt(fs.length)}</td></tr></table>${filterNote()}<h4>Films</h4>` + filmList(fs, c[3]);
+  } else if (sel && sel.t === "film") {
+    const f = FILMS[sel.f], oc = f[2] ? f[2].split(",") : [];
+    h = `<button class="back">Back</button><h4>Film${f[6] ? " · Eon James Bond" : ""}</h4><div class="big">${esc(f[0])}</div><table><tr><td>Year</td><td>${f[1] || "not given"}</td></tr><tr><td>Made in</td><td>${oc.length ? esc(oc.map(CN).join(", ")) : "not given"}</td></tr>${f[5] ? `<tr><td>Director</td><td>${esc(f[5])}</td></tr>` : ""}<tr><td>Sitelinks</td><td>${f[3]}</td></tr></table><h4>Filming locations in Wikidata</h4><ul>` +
+      f[7].map(i => `<li><span class="go" data-l="${i}">${esc(LOCS[i][2])}</span> <small>${esc(CN(LOCS[i][3]))}</small>${filmAbroadAt(sel.f, LOCS[i][3]) ? '<span class="ab a">abroad</span>' : ""}</li>`).join("") +
+      f[8].map(i => `<li>${esc(COARSE[i][2])} <small>whole ${COARSE[i][4] === 0 ? "country" : "state or region"}, not mapped</small>${filmAbroadAt(sel.f, COARSE[i][3]) ? '<span class="ab a">abroad</span>' : ""}</li>`).join("") + `</ul><p>${wdlink(f[4], "Wikidata " + f[4])}</p>`;
+    note(`<b>${esc(f[0])}</b>${f[1] ? ", " + f[1] : ""}: ${f[7].length + f[8].length} locations`);
+  } else if (sel && sel.t === "bondloc") {
+    const p = sel.p; h = `<button class="back">Back</button><h4>James Bond location${p.c ? " (whole country or state)" : ""}</h4><div class="big">${esc(p.name)}</div><ul>` + p.films.sort((a, b) => FILMS[a][1] - FILMS[b][1]).map(fi => `<li><span class="go" data-f="${fi}">${esc(FILMS[fi][0])}</span> <small>${FILMS[fi][1]}</small></li>`).join("") + `</ul>`;
+  } else if (sel && sel.t === "country") {
+    const iso = sel.iso, x = SITE.host[iso];
+    h = `<button class="back">Back</button><h4>Country</h4><div class="big">${esc(CN(iso))}</div>`;
+    if (!x) h += `<p class="sub">No films with a filming location here in the data.</p>`;
+    else {
+      h += `<table><tr><td>Films shot here</td><td class="num">${fmt(x[0])}</td></tr><tr><td>Own films</td><td class="num">${fmt(x[1] - x[2])}</td></tr><tr><td>Foreign productions</td><td class="num">${fmt(x[2])} <small>${x[3].toFixed(0)}%</small></td></tr><tr><td>Films made here (origin)</td><td class="num">${fmt(x[5][0])}</td></tr><tr><td>of which shot partly abroad</td><td class="num">${fmt(x[5][1])}</td></tr></table>`;
+      if (x[4].length) h += `<h4>Foreign productions mostly from</h4><ul>` + x[4].map(c => `<li>${esc(c[1])} <small>${fmt(c[2])}</small></li>`).join("") + `</ul>`;
+      const ls = LOCS.map((L0, i) => [i, ACT[i].length]).filter(([i, n]) => n && LOCS[i][3] === iso).sort((a, b) => b[1] - a[1]).slice(0, 12);
+      if (ls.length) h += `<h4>Busiest mapped places${S.dec || S.orig || S.pop || S.ha !== "all" ? " (filtered)" : ""}</h4><ol>` + ls.map(([i, n]) => `<li><span class="go" data-l="${i}">${esc(LOCS[i][2])}</span> <small>${fmt(n)}</small></li>`).join("") + `</ol>`;
+      const cs = COARSE.map((c, i) => [i, ACTC[i].length]).filter(([i, n]) => n && COARSE[i][3] === iso).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      if (cs.length) h += `<h4>Recorded only as a country or region</h4><ul>` + cs.map(([i, n]) => `<li><span class="go" data-c="${i}">${esc(COARSE[i][2])}</span> <small>${fmt(n)}</small></li>`).join("") + `</ul>`;
+    }
+    note(`<b>${esc(CN(iso))}</b>${x ? `: ${fmt(x[2])} foreign films hosted` : ""}`);
+  } else {
+    let nf = 0; const seen = new Uint8Array(FILMS.length); ACT.forEach(fs => fs.forEach(fi => { if (!seen[fi]) { seen[fi] = 1; nf++; } }));
+    const top = LOCS.map((L0, i) => [i, val(ACT[i])]).filter(x => x[1]).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    h = `<h4>${S.dec ? S.dec + "s" : "All decades"}</h4><div class="big">${fmt(nf)} films</div><p class="sub">with a mapped filming place under the current filters.</p>${filterNote()}<h4>Busiest places${S.met === "w" ? " (popularity-weighted)" : ""}</h4><ol>` +
+      top.map(([i, v]) => `<li><span class="go" data-l="${i}">${esc(LOCS[i][2])}</span> <small>${fmt(v)} · ${esc(CN(LOCS[i][3]))}</small></li>`).join("") + `</ol>`;
+    if (LY.bond) h += `<h4>James Bond films</h4><ol>` + BONDF.map(fi => `<li><span class="go" data-f="${fi}">${esc(FILMS[fi][0])}</span> <small>${FILMS[fi][1]}</small></li>`).join("") + `</ol>`;
+    h += `<p class="sub">Click a hexagon, a place or a country. Search for a film to see all its locations.</p>`;
+    note("");
+  }
+  box.innerHTML = h;
+  const b = box.querySelector(".back"); if (b) b.onclick = () => { S.sel = null; MORE = 40; dots.draw(); cLayer.setStyle(cStyle); side(); };
+  const m = box.querySelector("[data-more]"); if (m) m.onclick = () => { MORE += 200; side(); };
+  box.querySelectorAll("[data-f]").forEach(e => e.onclick = () => pickFilm(+e.dataset.f, true));
+  box.querySelectorAll("[data-l]").forEach(e => e.onclick = () => pickLoc(+e.dataset.l, true));
+  box.querySelectorAll("[data-c]").forEach(e => e.onclick = () => { S.sel = { t: "coarse", i: +e.dataset.c }; side(); });
+}
+function note(h) { document.getElementById("mapnote").innerHTML = h || ""; }
+function toMap() { if (small()) document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "start" }); }
+function pickLoc(i, move) { MORE = 40; S.sel = { t: "loc", i }; if (move) { map.setView([LOCS[i][1], LOCS[i][0]], Math.max(map.getZoom(), 9)); toMap(); } dots.draw(); side(); }
+function pickFilm(fi, move) {
+  MORE = 40; S.sel = { t: "film", f: fi }; const f = FILMS[fi];
+  const pts = f[7].map(i => [LOCS[i][1], LOCS[i][0]]).concat(f[8].map(i => [COARSE[i][1], COARSE[i][0]]));
+  if (move && pts.length) { if (pts.length === 1) map.setView(pts[0], f[7].length ? 9 : 5); else map.fitBounds(pts, { padding: [40, 40], maxZoom: 9 }); toMap(); }
+  dots.draw(); side();
+}
+const FIT = { USA: [[24, -125], [50, -66]], FRA: [[41.3, -5.2], [51.2, 9.6]], NOR: [[57.9, 4.5], [71.2, 31]], RUS: [[41, 27], [70, 140]], NLD: [[50.7, 3.3], [53.6, 7.3]], CHN: [[18, 73], [53.6, 135]], CHL: [[-56, -76], [-17.5, -66]], NZL: [[-47.5, 166], [-34, 179]], ESP: [[35.8, -9.5], [43.9, 4.4]], PRT: [[36.9, -9.6], [42.2, -6.1]], CAN: [[42, -140], [62, -52]], GBR: [[49.8, -8.5], [59, 2]] };
+function fitIso(iso) { const f = WORLD.features.find(x => x.properties.iso === iso); if (FIT[iso]) return map.fitBounds(FIT[iso]); if (f) return map.fitBounds(L.geoJSON(f).getBounds(), { padding: [10, 10], maxZoom: 9 }); const g = SITE.cpos[iso]; if (g) map.setView([g[1], g[0]], 9); }
+function pickCountry(iso, move) { MORE = 40; S.sel = { t: "country", iso }; if (move) { fitIso(iso); toMap(); } cLayer.setStyle(cStyle); dots.draw(); side(); }
+(function focusRow() {
+  const row = document.getElementById("focusRow");
+  const F = [["Los Angeles", [[33.6, -118.8], [34.4, -117.8]]], ["New York", [[40.45, -74.3], [40.95, -73.7]]], ["London", [[51.25, -0.75], [51.75, 0.35]]], ["Paris", [[48.7, 2.1], [49.0, 2.6]]], ["Europe", [[35, -12], [62, 32]]], ["North America", [[22, -128], [56, -60]]], ["Asia", [[-10, 60], [50, 145]]], ["World", null]];
+  F.forEach(([n, b]) => { const x = document.createElement("button"); x.className = "btn"; x.textContent = n; x.onclick = () => { if (!b) { S.sel = null; map.setView([30, -10], small() ? 1 : 2); cLayer.setStyle(cStyle); side(); } else map.fitBounds(b); toMap(); }; row.appendChild(x); });
+})();
+
+/* ---------- controls ---------- */
+function setDec(k) {
+  S.dec = k ? DECS[k - 1] : 0; document.getElementById("slider").value = k;
+  document.getElementById("yr").firstChild.nodeValue = S.dec ? S.dec + "s" : "All";
+  document.getElementById("yrsub").textContent = S.dec ? `${fmt(R.films_by_dec[S.dec] || 0)} films that decade` : "decades";
+  if (S.sel && S.sel.t === "hex") S.sel = null;
+  recompute();
+}
+let timer = null;
+function play(on) {
+  S.playing = on; const b = document.getElementById("play");
+  b.innerHTML = on ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>' : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>';
+  b.setAttribute("aria-label", on ? "Pause" : "Play through the decades"); clearInterval(timer);
+  if (on) { let k = +document.getElementById("slider").value; if (k >= 13) k = 0; setDec(k + 1); timer = setInterval(() => { const k2 = +document.getElementById("slider").value; if (k2 >= 13) { play(false); return; } setDec(k2 + 1); }, 1300); }
+}
+document.getElementById("play").onclick = () => play(!S.playing);
+document.getElementById("slider").addEventListener("input", e => { if (S.playing) play(false); setDec(+e.target.value); });
+const press = (row, attr, v) => document.querySelectorAll(`#${row} .btn`).forEach(x => x.setAttribute("aria-pressed", x.dataset[attr] === v));
+document.querySelectorAll("#viewRow .btn").forEach(b => b.onclick = () => { S.view = b.dataset.v; press("viewRow", "v", S.view); if (S.sel && S.sel.t === "hex") S.sel = null; dots.draw(); legend(); side(); });
+document.querySelectorAll("#metRow .btn").forEach(b => b.onclick = () => { S.met = b.dataset.m; press("metRow", "m", S.met); dots.draw(); legend(); side(); });
+document.querySelectorAll("#haRow .btn").forEach(b => b.onclick = () => { S.ha = b.dataset.h; press("haRow", "h", S.ha); recompute(); });
+(function () { const s = document.getElementById("orig"); SITE.origins.forEach(([i, n, c]) => { const o = document.createElement("option"); o.value = i; o.textContent = `${n} (${fmt(c)})`; s.appendChild(o); }); s.onchange = () => { S.orig = s.value; recompute(); }; })();
+document.getElementById("pop").onchange = e => { S.pop = +e.target.value; recompute(); };
+document.getElementById("bondBtn").onclick = () => { LY.bond = !LY.bond; saveLY(); window.syncLayers && window.syncLayers(); applyLayers(); legend(); side(); if (LY.bond) { map.fitBounds([[-35, -100], [62, 60]]); } };
+map.on("zoomend moveend", () => { placeNames(); if (S.sel && S.sel.t === "hex") { /* hexes change with zoom */ } });
+map.on("zoomend", () => { if (S.sel && S.sel.t === "hex") { S.sel = null; side(); } });
+
+function legend() {
+  const e = document.getElementById("legend"); let h = "";
+  if (LY.films) {
+    if (S.view === "hex") h += `<span>fewer</span><span class="ramp" style="background:linear-gradient(90deg,${RAMP.join(",")})"></span><span>more ${S.met === "w" ? "sitelinks of films" : "films"} per hexagon (log scale)</span>`;
+    else h += `<span><i style="background:${HOME}"></i>mostly own films</span><span><i style="background:${mix(HOME, ABR, .5)}"></i>half</span><span><i style="background:${ABR}"></i>mostly foreign productions</span><span>circle area: ${S.met === "w" ? "sitelinks" : "films"}</span>`;
+  }
+  if (LY.coarse) h += `<span><i class="r"></i>whole country or state (not a place)</span>`;
+  if (LY.host) h += `<span><i class="sq" style="background:#3E8F97;opacity:.7"></i>country shaded by foreign films hosted</span>`;
+  if (LY.bond) h += `<span><i style="background:${GOLD}"></i>James Bond location</span>`;
+  e.innerHTML = h;
+}
+
+/* ---------- search: films, places, countries ---------- */
+(function search() {
+  const inp = document.getElementById("q"), sug = document.getElementById("sug"); let opts = [], k = -1;
+  const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  let NF = null, NL = null;
+  function build(q) {
+    const nq = norm(q); if (nq.length < 2) return [];
+    const out = [];
+    Object.keys(SITE.host).forEach(iso => { const n = CN(iso); if (norm(n).includes(nq)) out.push({ t: "c", n, iso, s: norm(n).startsWith(nq) ? 6 : 2 }); });
+    if (LOCS) {
+      if (!NF) { NF = FILMS.map(f => norm(f[0])); NL = LOCS.map(l => norm(l[2])); }
+      let m = 0; for (let i = 0; i < LOCS.length && m < 200; i++) if (NL[i].includes(nq)) { out.push({ t: "l", n: LOCS[i][2], i, s: (NL[i] === nq ? 5 : NL[i].startsWith(nq) ? 3 : 1) + Math.min(LF[i].length, 400) / 200 }); m++; }
+      m = 0; for (let i = 0; i < FILMS.length && m < 300; i++) if (NF[i].includes(nq)) { out.push({ t: "f", n: FILMS[i][0], i, s: (NF[i] === nq ? 4.5 : NF[i].startsWith(nq) ? 2.5 : 1) + Math.min(FILMS[i][3], 80) / 40 }); m++; }
+    }
+    return out.sort((a, b) => b.s - a.s).slice(0, 12);
+  }
+  const lab = o => o.t === "c" ? `${esc(o.n)} <span>country</span>` : o.t === "l" ? `${esc(o.n)} <span>place, ${esc(CN(LOCS[o.i][3]))}, ${fmt(LF[o.i].length)} films</span>` : `${esc(o.n)} <span>film, ${FILMS[o.i][1] || "no year"}</span>`;
+  const show = () => { sug.innerHTML = opts.map((o, i) => `<li role="option" aria-selected="${i === k}" data-i="${i}">${lab(o)}</li>`).join(""); sug.style.display = opts.length ? "block" : "none"; };
+  const choose = o => { sug.style.display = "none"; inp.value = o.n; inp.blur(); if (o.t === "c") pickCountry(o.iso, true); else if (o.t === "l") { if (!S.view === "places") {} pickLoc(o.i, true); } else pickFilm(o.i, true); };
+  inp.addEventListener("input", () => { opts = build(inp.value); k = -1; show(); });
+  inp.addEventListener("keydown", e => { if (e.key === "ArrowDown") { k = Math.min(opts.length - 1, k + 1); show(); e.preventDefault(); } else if (e.key === "ArrowUp") { k = Math.max(0, k - 1); show(); e.preventDefault(); } else if (e.key === "Enter" && opts.length) { choose(opts[Math.max(0, k)]); } else if (e.key === "Escape") { sug.style.display = "none"; } });
+  sug.addEventListener("click", e => { const li = e.target.closest("li"); if (li) choose(opts[+li.dataset.i]); });
+  document.addEventListener("click", e => { if (!e.target.closest(".searchbox")) sug.style.display = "none"; });
+})();
+
+/* ---------- load ---------- */
+fetch("data/points.json").then(r => r.json()).then(j => {
+  LOCS = j.locs; COARSE = j.coarse; FILMS = j.films;
+  LF = LOCS.map(() => []); CF = COARSE.map(() => []);
+  FILMS.forEach((f, fi) => { f[7].forEach(i => LF[i].push(fi)); f[8].forEach(i => CF[i].push(fi)); if (f[6]) BONDF.push(fi); });
+  BONDF.sort((a, b) => FILMS[a][1] - FILMS[b][1]);
+  recompute();
+});
+
+/* ---------- charts ---------- */
+function hbars(box, rows, opts) {
+  resp(box, (w, sm) => {
+    const maxLab = Math.max(...rows.map(r => String(r.lab ?? r.v).length)), lw = sm ? Math.min(150, w * .44) : Math.min(230, w * .42), rh = 26, h = rows.length * rh + 10, x0 = lw, x1 = w - 10 - maxLab * 7.4, max = opts.max || Math.max(...rows.map(r => r.v + (r.v2 || 0))) || 1;
+    const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": opts.aria }, box);
+    rows.forEach((r, i) => {
+      const y = 4 + i * rh, bw = Math.max(r.v > 0 ? 2 : 0, (x1 - x0) * r.v / max), bw2 = r.v2 ? (x1 - x0) * r.v2 / max : 0;
+      const cut = sm ? 19 : 30;
+      const t = lbl(svg, x0 - 8, y + 16, r.n.length > cut ? r.n.slice(0, cut - 1) + "." : r.n, "lab", "end");
+      const b = el("rect", { x: x0, y: y + 3, width: bw, height: rh - 9, fill: r.c, rx: 2 }, svg);
+      const els = [b, t];
+      if (bw2) els.push(el("rect", { x: x0 + bw, y: y + 3, width: bw2, height: rh - 9, fill: r.c2, rx: 2 }, svg));
+      lbl(svg, x0 + bw + bw2 + 6, y + 16, r.lab ?? fmt(r.v), "lab b");
+      els.forEach(e => { if (r.tip) { e.addEventListener("mousemove", ev => showTip(r.tip, ev.clientX, ev.clientY)); e.addEventListener("mouseleave", hideTip); } if (r.go) { e.style.cursor = "pointer"; e.addEventListener("click", r.go); } });
+    });
+  });
+}
+const toAtlas = () => document.getElementById("atlas").scrollIntoView({ behavior: "smooth" });
+function hubChart() {
+  let m = "n";
+  const draw = () => { const box = document.getElementById("hubChart"); box.innerHTML = ""; const rows = (m === "n" ? R.hubs.top : R.hubs.top_w).slice(0, 20);
+    hbars(box, rows.map(h => ({ n: h.name, v: m === "n" ? h.n : h.w, c: m === "n" ? "#A3202E" : "#B8860B", tip: `<b>${esc(h.name)}</b>, ${esc(h.country)}<br>${fmt(h.n)} films (rank ${h.rank_n}) · ${fmt(h.w)} sitelinks (rank ${h.rank_w})<br>${h.foreign_pct.toFixed(0)}% foreign productions<br>e.g. ${esc(h.top.slice(0, 2).map(t => t[0]).join("; "))}`,
+      go: () => { toAtlas(); S.view = "places"; press("viewRow", "v", "places"); map.setView([h.lat, h.lon], 10); dots.draw(); legend(); } })), { aria: "Busiest filming cities" }); };
+  document.querySelectorAll("#hubMet .btn").forEach(b => b.onclick = () => { m = b.dataset.m; press("hubMet", "m", m); draw(); });
+  draw();
+}
+function hostChart() {
+  hbars(document.getElementById("hostChart"), R.hosts.top_foreign.slice(0, 15).map(r => ({ n: r.name, v: r.dom, v2: r.foreign, c: "#B5A892", c2: "#1F7A85", lab: fmt(r.foreign) + " foreign",
+    tip: `<b>${esc(r.name)}</b><br>${fmt(r.n_o)} films shot here with a known origin<br>${fmt(r.dom)} own, ${fmt(r.foreign)} foreign (${r.foreign_pct.toFixed(0)}%)<br>from ${esc(r.from.map(x => x[1] + " " + x[2]).join(", "))}`, go: () => { toAtlas(); pickCountry(r.iso, true); } })), { aria: "Own and foreign films by host country" });
+}
+function shareChart() {
+  hbars(document.getElementById("shareChart"), R.hosts.top_share.slice(0, 15).map(r => ({ n: r.name, v: r.foreign_pct, c: "#1F7A85", lab: r.foreign_pct.toFixed(0) + "% of " + fmt(r.n_o), tip: `<b>${esc(r.name)}</b><br>${fmt(r.foreign)} of ${fmt(r.n_o)} films are foreign<br>mainly from ${esc(r.from.slice(0, 3).map(x => x[1]).join(", "))}`, go: () => { toAtlas(); pickCountry(r.iso, true); } })), { aria: "Share of foreign productions", max: 100 });
+}
+function standChart() {
+  hbars(document.getElementById("standChart"), R.hubs.standin.slice(0, 15).map(h => ({ n: h.name + ", " + h.country, v: h.foreign_pct, c: "#1F7A85", lab: h.foreign_pct.toFixed(0) + "% of " + fmt(h.n_o), tip: `<b>${esc(h.name)}</b><br>${fmt(h.foreign)} of ${fmt(h.n_o)} films foreign<br>mainly ${esc(h.from.map(x => x[1] + " " + x[2]).join(", "))}`,
+    go: () => { toAtlas(); S.view = "places"; press("viewRow", "v", "places"); map.setView([h.lat, h.lon], 10); dots.draw(); legend(); } })), { aria: "Cities where foreign productions are most common", max: 100 });
+}
+function lineChart(box, series, opts) {
+  resp(box, (w, sm) => {
+    const h = sm ? 260 : 320, m = { l: 44, r: 14, t: 12, b: 30 }, svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": opts.aria }, box);
+    const xs = opts.x, X = i => m.l + i / (xs.length - 1) * (w - m.l - m.r), mx = opts.max, Y = v => h - m.b - v / mx * (h - m.t - m.b);
+    for (let v = 0; v <= mx; v += opts.step) { el("line", { x1: m.l, x2: w - m.r, y1: Y(v), y2: Y(v), stroke: css("--rule") }, svg); lbl(svg, m.l - 6, Y(v) + 4, opts.fmt(v), "lab s m", "end"); }
+    xs.forEach((x, i) => { if (!sm || i % 2 === 0) lbl(svg, X(i), h - 10, x, "lab s m", "middle"); });
+    series.forEach(s => { el("path", { d: s.v.map((v, i) => (i ? "L" : "M") + X(i).toFixed(1) + "," + Y(v).toFixed(1)).join(""), fill: "none", stroke: s.c, "stroke-width": 2.6, "stroke-linejoin": "round" }, svg);
+      s.v.forEach((v, i) => { const c = el("circle", { cx: X(i), cy: Y(v), r: 4.5, fill: s.c, stroke: css("--card"), "stroke-width": 1.2 }, svg); c.addEventListener("mousemove", ev => showTip(s.tip(i), ev.clientX, ev.clientY)); c.addEventListener("mouseleave", hideTip); });
+      if (s.end) lbl(svg, X(s.v.length - 1) - 4, Y(s.v[s.v.length - 1]) - 9, s.end, "lab s", "end"); });
+  });
+}
+function decChart() {
+  const D = R.decades.filter(d => d.dec >= 1920);
+  lineChart(document.getElementById("decChart"), [
+    { v: D.map(d => d.pct_ex_idn), c: "#A3202E", tip: i => `<b>${D[i].dec}s</b><br>${D[i].pct_ex_idn.toFixed(0)}% of films (excluding Indonesia) shot partly abroad`, end: "" },
+    { v: D.map(d => d.us_pct), c: "#1F7A85", tip: i => `<b>${D[i].dec}s</b><br>${D[i].us_pct.toFixed(0)}% of ${fmt(D[i].us_n)} American films shot partly abroad` }],
+    { x: D.map(d => d.dec + "s"), max: 40, step: 10, fmt: v => v + "%", aria: "Share of films shot abroad by decade" });
+}
+function hostDecChart() {
+  const H = [["CAN", "#1F7A85"], ["GBR", "#A3202E"], ["ESP", "#D98A2B"], ["BGR", "#6A4C93"], ["HUN", "#3E7D3A"], ["MAR", "#B8860B"]], ds = ["1950", "1960", "1970", "1980", "1990", "2000", "2010", "2020"];
+  lineChart(document.getElementById("hostDecChart"), H.map(([iso, c]) => ({ v: ds.map(d => R.host_decades[iso][d]), c, tip: i => `<b>${esc(CN(iso))}, ${ds[i]}s</b><br>${R.host_decades[iso][ds[i]]} foreign films`, end: CN(iso) })),
+    { x: ds.map(d => d + "s"), max: 280, step: 50, fmt: v => v, aria: "Foreign productions hosted by decade" });
+}
+function bondPart() {
+  const cards = document.getElementById("bondCards");
+  [[R.bond.n_locs, "places", "distinct filming locations across the 25 films"], [R.bond.n_countries, "countries and territories", "including the UK"], [R.bond.pinewood, "of 25 films", "list Pinewood Studios"], [R.bond.most.n, R.bond.most.t, "the most locations of any Bond film"]].forEach(([v, b, s], i) => {
+    const d = document.createElement("div"); d.className = "card"; d.style.setProperty("--c", "#B8860B"); d.innerHTML = `<div class="big">${fmt(v)}</div><b>${esc(b)}</b>${esc(s)}`; cards.appendChild(d); });
+  const t = document.getElementById("bondTable");
+  t.innerHTML = `<thead><tr><th>Year</th><th>Film</th><th class="num">Places</th><th>Countries outside the UK</th></tr></thead><tbody>` + R.bond.films.map((b, i) => `<tr data-q="${b.q}"><td class="y">${b.y}</td><td>${esc(b.t)}${b.pinewood ? ' <small style="color:var(--muted)">Pinewood</small>' : ""}</td><td class="num">${b.n}</td><td>${esc(b.outside_uk.join(", ") || "none recorded")}</td></tr>`).join("") + `</tbody>`;
+  t.querySelectorAll("tr[data-q]").forEach(r => r.onclick = () => { if (!FILMS) return; const fi = FILMS.findIndex(f => f[4] === r.dataset.q); if (fi < 0) return; toAtlas(); if (!LY.bond) { LY.bond = true; window.syncLayers && window.syncLayers(); applyLayers(); legend(); } setTimeout(() => pickFilm(fi, true), 350); });
+}
+function levChart() {
+  const p = R.source.plev, n = R.source.n_pairs;
+  hbars(document.getElementById("levChart"), [["site", "Sites (studios, streets, villages...)", "#A3202E"], ["city", "Cities and towns", "#D98A2B"], ["region", "Whole states or regions", "#9A8A74"], ["country", "Whole countries", "#6E6458"]].map(([k, nm, c]) => ({ n: nm, v: p[k], c, lab: fmt(p[k]) + " (" + (100 * p[k] / n).toFixed(0) + "%)" })), { aria: "Film-location records by level" });
+}
+function popChart() {
+  hbars(document.getElementById("popChart"), R.pop.tiers.map(t => ({ n: t.hi > 500 ? `${t.lo}+ sitelinks` : `${t.lo} to ${t.hi} sitelinks`, v: t.pct, c: "#1F7A85", lab: t.pct.toFixed(0) + "% of " + fmt(t.n), tip: `${fmt(t.n)} films, ${t.locs.toFixed(1)} locations each on average` })), { aria: "Share shot abroad by popularity", max: 100 });
+}
+function charts() { hubChart(); hostChart(); shareChart(); standChart(); decChart(); hostDecChart(); bondPart(); levChart(); popChart(); }
+
+/* ---------- start ---------- */
+document.getElementById("theme").onclick = () => { const r = document.documentElement; r.dataset.theme = isDark() ? "light" : "dark"; setTiles(); legend(); redraws.forEach(f => f()); };
+charts(); setTiles(); legend(); side(); placeNames();
+</script>
+/*FULLSCREEN*/
+</body>
+</html>

@@ -1,0 +1,177 @@
+country_code,country,films_shot_there,with_origin,domestic,foreign,foreign_pct,main_foreign_origins,films_of_this_origin,of_which_shot_abroad
+USA,United States,6980,6959,6667,292,4.2,France 67; Italy 46; United Kingdom 45; Canada 39,9302,2352
+IDN,Indonesia,3031,3026,3003,23,0.8,United States 12; United Kingdom 2; India 2; Italy 2,3004,9
+CAN,Canada,2200,2167,1450,717,33.1,United States 683; United Kingdom 56; Germany 34; France 22,1638,138
+FRA,France,1725,1719,1466,253,14.7,United States 138; United Kingdom 61; Germany 26; Spain 21,2538,522
+GBR,United Kingdom,1366,1362,1075,287,21.1,United States 208; India 31; France 17; Germany 16,1985,637
+ESP,Spain,1072,1064,812,252,23.7,United States 122; United Kingdom 75; France 37; Italy 35,975,133
+ITA,Italy,916,912,751,161,17.7,United States 92; United Kingdom 37; France 25; Germany 22,1362,264
+DEU,Germany,597,591,489,102,17.3,United States 55; France 17; United Kingdom 17; Italy 9,1182,377
+IND,India,441,437,408,29,6.6,United States 13; United Kingdom 5; Italy 5; France 5,614,213
+MEX,Mexico,363,362,180,182,50.3,United States 159; France 18; United Kingdom 9; Canada 8,237,18
+HKG,Hong Kong,351,340,254,86,25.3,United States 43; China 16; France 15; United Kingdom 15,334,84
+RUS,Russia,332,330,258,72,21.8,United States 33; Germany 12; France 12; United Kingdom 11,182,44
+AUS,Australia,331,331,245,86,26.0,United States 58; India 14; United Kingdom 8; China 3,407,95
+GRC,Greece,329,329,254,75,22.8,United States 37; United Kingdom 21; France 16; Germany 12,267,7
+CZE,Czech Republic,308,308,188,120,39.0,United States 63; Germany 27; United Kingdom 24; France 18,138,19
+TUR,Turkey,286,284,204,80,28.2,United States 31; United Kingdom 21; France 8; India 7,214,8
+POL,Poland,269,258,224,34,13.2,United States 11; Germany 7; Belarus 7; France 4,265,22
+JPN,Japan,263,261,176,85,32.6,United States 44; United Kingdom 11; France 8; Germany 7,262,40
+BRA,Brazil,245,240,189,51,21.2,United States 20; France 11; United Kingdom 6; Italy 6,210,18
+NZL,New Zealand,227,225,128,97,43.1,United States 55; India 20; United Kingdom 15; South Korea 6,137,5
+SWE,Sweden,199,199,191,8,4.0,Finland 5; Spain 1; United States 1; Denmark 1,279,68
+CHN,China,192,192,143,49,25.5,United States 25; Hong Kong 13; United Kingdom 5; Spain 2,197,56
+CHE,Switzerland,183,183,70,113,61.7,United States 41; France 24; United Kingdom 22; Italy 15,146,25
+FIN,Finland,180,179,153,26,14.5,United States 11; United Kingdom 8; France 6; Germany 5,190,37
+AUT,Austria,167,167,75,92,55.1,United States 36; Germany 34; United Kingdom 26; France 14,113,23
+ARG,Argentina,166,166,141,25,15.1,United States 13; United Kingdom 5; France 5; Spain 3,185,20
+THA,Thailand,161,161,20,141,87.6,United States 63; India 25; France 15; United Kingdom 15,23,3
+MAR,Morocco,161,159,28,131,82.4,United States 62; France 44; United Kingdom 29; Germany 14,30,3
+AZE,Azerbaijan,152,92,83,9,9.8,Armenia 3; Iran 2; France 2; Soviet Union 2,58,7
+KOR,South Korea,150,150,135,15,10.0,United States 7; Hong Kong 3; United Kingdom 1; Japan 1,163,26
+BGR,Bulgaria,146,137,29,108,78.8,United States 76; Germany 16; France 10; United Kingdom 8,33,2
+PRT,Portugal,144,144,95,49,34.0,France 23; United States 12; United Kingdom 7; Spain 6,121,14
+HUN,Hungary,141,141,56,85,60.3,United States 67; United Kingdom 13; France 11; Germany 6,76,15
+ZAF,South Africa,135,135,50,85,63.0,United States 44; United Kingdom 24; India 13; Germany 7,60,8
+BLR,Belarus,117,114,95,19,16.7,Russia 12; Poland 4; Germany 1; Norway 1,96,14
+NLD,Netherlands,110,106,76,30,28.3,United States 10; United Kingdom 8; France 5; Germany 4,150,36
+BEL,Belgium,102,101,66,35,34.7,France 12; United States 9; Germany 8; United Kingdom 5,263,55
+PHL,Philippines,101,101,16,85,84.2,United States 60; Italy 11; Hong Kong 5; Germany 3,28,10
+MLT,Malta,85,85,3,82,96.5,United Kingdom 45; United States 35; France 11; Germany 11,5,1
+IRN,Iran,85,84,82,2,2.4,France 1; Spain 1,92,6
+ROU,Romania,76,76,45,31,40.8,United States 22; Hungary 2; Italy 2; United Kingdom 2,64,6
+KEN,Kenya,68,67,5,62,92.5,United States 32; United Kingdom 24; Germany 5; Italy 4,6,1
+ISL,Iceland,64,64,14,50,78.1,United States 32; United Kingdom 11; France 5; Germany 4,21,5
+UKR,Ukraine,64,64,47,17,26.6,Russia 6; France 4; Germany 3; Hungary 1,27,4
+EGY,Egypt,62,61,11,50,82.0,United States 23; United Kingdom 9; India 7; France 6,13,6
+IRL,Ireland,62,60,26,34,56.7,United States 23; United Kingdom 14; Spain 2; France 1,61,16
+TWN,Taiwan,62,62,36,26,41.9,China 11; Hong Kong 10; United States 4; Canada 2,43,4
+NOR,Norway,61,61,36,25,41.0,United States 13; United Kingdom 8; Sweden 4; Germany 3,80,28
+HRV,Croatia,60,59,31,28,47.5,United States 14; Germany 7; United Kingdom 5; Italy 4,16,2
+DNK,Denmark,60,60,51,9,15.0,Sweden 5; United States 3; Germany 2; United Kingdom 2,128,35
+BHS,Bahamas,48,48,2,46,95.8,United States 39; United Kingdom 8; Italy 4; France 3,3,0
+EST,Estonia,47,47,39,8,17.0,Finland 3; United States 2; Germany 1; Czechoslovakia 1,33,4
+PER,Peru,39,38,22,16,42.1,United States 12; France 3; Germany 3; United Kingdom 2,23,0
+CHL,Chile,39,39,28,11,28.2,United States 6; United Kingdom 4; France 3; Germany 1,40,2
+MCO,Monaco,37,37,2,35,94.6,United States 21; France 13; United Kingdom 10; Germany 4,3,0
+SVN,Slovenia,35,23,19,4,17.4,Spain 1; Czech Republic 1; Croatia 1; Italy 1,25,6
+IMN,Isle of Man,34,34,33,1,2.9,United States 1,0,0
+SVK,Slovakia,31,30,20,10,33.3,Poland 3; Norway 2; United States 2; Ireland 1,25,4
+LVA,Latvia,29,29,24,5,17.2,United States 2; Poland 2; China 1; Hong Kong 1,13,6
+ZWE,Zimbabwe,25,23,0,23,100.0,United States 12; France 4; United Kingdom 3; Germany 3,0,0
+JOR,Jordan,24,24,4,20,83.3,United States 13; Germany 3; United Kingdom 3; France 3,6,1
+ARE,United Arab Emirates,20,20,4,16,80.0,United States 6; India 5; France 1; Spain 1,12,5
+PYF,French Polynesia,20,20,5,15,75.0,United States 13; Australia 2; China 1; Germany 1,0,0
+LTU,Lithuania,19,19,8,11,57.9,Belarus 3; Germany 2; Sweden 2; United Kingdom 1,14,4
+PAN,Panama,18,17,2,15,88.2,United States 13; United Kingdom 3; France 2; Ireland 1,4,1
+ISR,Israel,17,16,8,8,50.0,United States 6; France 1; Germany 1; Australia 1,20,4
+CUB,Cuba,16,15,3,12,80.0,Canada 4; France 2; Spain 2; Brazil 2,5,0
+COD,Democratic Republic of the Congo,16,16,7,9,56.2,France 4; United States 2; Belgium 2; United Kingdom 1,8,1
+NPL,Nepal,16,16,10,6,37.5,United States 5; United Kingdom 2; Iceland 1; France 1,12,5
+VIR,United States Virgin Islands,16,16,14,2,12.5,France 2; United Kingdom 1; Spain 1; Canada 1,0,0
+SRB,Serbia,15,15,5,10,66.7,United States 7; United Kingdom 3; Switzerland 1; Australia 1,7,3
+LBN,Lebanon,15,15,5,10,66.7,France 3; Iran 2; Italy 1; United Kingdom 1,6,1
+MYS,Malaysia,15,14,7,7,50.0,United States 3; India 2; United Kingdom 1; Germany 1,12,0
+TZA,Tanzania,14,14,0,14,100.0,United States 6; Germany 5; France 2; Belgium 2,0,0
+URY,Uruguay,14,13,6,7,53.8,Argentina 7; France 1; Spain 1,13,1
+COL,Colombia,13,13,4,9,69.2,United States 4; France 2; Spain 2; United Kingdom 1,9,2
+VNM,Vietnam,13,12,5,7,58.3,United States 4; France 2; Hong Kong 1,7,1
+SAU,Saudi Arabia,13,13,7,6,46.2,United States 4; Canada 1; Norway 1; Hungary 1,8,0
+DOM,Dominican Republic,12,12,2,10,83.3,United States 6; Canada 3; Spain 1; Sweden 1,2,0
+PSE,Palestine,12,12,7,5,41.7,Israel 2; United States 1; Australia 1; Canada 1,8,1
+PRI,Puerto Rico,12,11,8,3,27.3,Spain 1; Hong Kong 1; United Kingdom 1,0,0
+ATA,Antarctica,11,11,0,11,100.0,United States 4; Australia 2; Spain 1; Ukraine 1,0,0
+DZA,Algeria,11,11,4,7,63.6,France 4; United Kingdom 1; Malta 1; United States 1,9,0
+TUN,Tunisia,10,10,1,9,90.0,United States 5; United Kingdom 3; Canada 1; Italy 1,5,2
+SEN,Senegal,10,10,3,7,70.0,France 2; Spain 2; Burkina Faso 1; United States 1,3,0
+GTM,Guatemala,10,10,3,7,70.0,United States 5; France 2; Mexico 1; United Kingdom 1,4,1
+GIB,Gibraltar,10,10,7,3,30.0,United States 2; Germany 1,0,0
+NGA,Nigeria,10,10,10,0,0.0,,13,5
+BLZ,Belize,9,9,0,9,100.0,United States 6; United Kingdom 2; France 1; Spain 1,0,0
+IRQ,Iraq,9,9,1,8,88.9,United States 4; Spain 2; United Kingdom 1; Netherlands 1,2,1
+PRY,Paraguay,9,9,2,7,77.8,United States 3; Argentina 3; Spain 2; Brazil 1,2,0
+KAZ,Kazakhstan,9,9,4,5,55.6,Switzerland 1; United States 1; North Korea 1; Russia 1,3,0
+BGD,Bangladesh,9,9,5,4,44.4,United States 2; France 1; United Kingdom 1; Italy 1,10,5
+GEO,Georgia,9,9,6,3,33.3,Russia 1; United Kingdom 1; India 1,6,1
+VEN,Venezuela,9,8,5,3,37.5,France 2; China 1; Germany 1; United States 1,12,1
+LUX,Luxembourg,9,9,7,2,22.2,Estonia 1; Netherlands 1,38,13
+SYC,Seychelles,8,8,0,8,100.0,France 5; United States 3; United Kingdom 3; Poland 1,0,0
+ARM,Armenia,8,8,7,1,12.5,France 1,7,3
+JAM,Jamaica,7,7,0,7,100.0,United States 5; United Kingdom 2; Spain 1; Australia 1,0,0
+NAM,Namibia,7,7,0,7,100.0,United States 4; Spain 1; United Kingdom 1; France 1,0,0
+MAC,Macau,7,7,0,7,100.0,Hong Kong 3; United States 3; China 2; France 2,0,0
+HTI,Haiti,7,7,6,1,14.3,France 1; Belgium 1; Luxembourg 1,7,0
+ALA,Åland,6,6,0,6,100.0,Sweden 5; Finland 5; Norway 1; Latvia 1,0,0
+CYM,Cayman Islands,6,6,0,6,100.0,United States 6; Canada 1; United Kingdom 1; Germany 1,0,0
+SGP,Singapore,6,6,3,3,50.0,India 1; Australia 1; Hong Kong 1,11,2
+KGZ,Kyrgyzstan,6,6,5,1,16.7,Russia 1,5,4
+AFG,Afghanistan,5,5,1,4,80.0,Spain 2; Italy 1; United States 1,4,0
+KHM,Cambodia,5,5,2,3,60.0,United States 3; United Kingdom 1; India 1,4,0
+MDA,Moldova,5,4,1,3,75.0,Germany 1; United States 1; Azerbaijan 1,0,0
+GRL,Greenland,5,5,2,3,60.0,France 2; United Kingdom 1; United States 1,0,0
+ECU,Ecuador,5,5,3,2,40.0,United States 2,4,1
+BFA,Burkina Faso,5,4,3,1,25.0,United Kingdom 1,5,2
+SYR,Syria,5,4,4,0,0.0,,5,0
+VAT,Vatican City,4,4,0,4,100.0,United States 2; United Kingdom 1; Egypt 1; Japan 1,0,0
+ETH,Ethiopia,4,4,0,4,100.0,France 3; Germany 1; Italy 1,0,0
+FJI,Fiji,4,4,0,4,100.0,United States 4; United Kingdom 1; India 1,0,0
+CMR,Cameroon,4,4,1,3,75.0,France 2; United Kingdom 1,2,0
+MNG,Mongolia,4,4,2,2,50.0,France 2; Italy 1,2,0
+SDN,Sudan,4,4,2,2,50.0,United Kingdom 2,2,0
+PRK,North Korea,4,4,2,2,50.0,Czech Republic 1; Norway 1; Latvia 1; Slovenia 1,2,1
+GHA,Ghana,3,3,0,3,100.0,Germany 1; United States 1; France 1; Spain 1,1,0
+UGA,Uganda,3,3,0,3,100.0,United States 2; Egypt 1,0,0
+VCT,Saint Vincent and the Grenadines,3,3,0,3,100.0,United States 2; Spain 1,0,0
+BRB,Barbados,3,3,0,3,100.0,United States 2; Canada 1; United Kingdom 1,0,0
+SLV,El Salvador,3,3,0,3,100.0,United States 2; Egypt 1,0,0
+AND,Andorra,3,3,0,3,100.0,Spain 2; United Kingdom 1; France 1; Luxembourg 1,0,0
+DJI,Djibouti,3,3,0,3,100.0,France 3; United Kingdom 1; United States 1; Belgium 1,0,0
+CIV,Ivory Coast,3,3,1,2,66.7,United States 1; France 1; Belgium 1,1,0
+FRO,Faroe Islands,3,3,1,2,66.7,United States 2,1,0
+CRI,Costa Rica,3,3,1,2,66.7,United States 1; Canada 1,2,1
+TTO,Trinidad and Tobago,3,3,1,2,66.7,Canada 1; United States 1,1,0
+DMA,Dominica,3,2,0,2,100.0,United States 1; Canada 1,0,0
+LKA,Sri Lanka,3,3,1,2,66.7,United States 2,1,0
+MLI,Mali,3,3,2,1,33.3,Germany 1,3,0
+UZB,Uzbekistan,3,2,1,1,50.0,Kyrgyzstan 1,1,0
+GAB,Gabon,2,2,0,2,100.0,United States 1; Democratic Republic of the Congo 1,0,0
+MOZ,Mozambique,2,2,0,2,100.0,Sweden 1; Spain 1,0,0
+AGO,Angola,2,2,0,2,100.0,United States 2; Australia 1,0,0
+NER,Niger,2,2,0,2,100.0,Germany 1; France 1,0,0
+BOL,Bolivia,2,2,0,2,100.0,United States 1; France 1; Spain 1; Mexico 1,1,0
+MNE,Montenegro,2,2,0,2,100.0,United States 1; Serbia 1,0,0
+CYP,Turkish Republic of Northern Cyprus,2,2,0,2,100.0,France 1; Canada 1,1,0
+SMR,San Marino,2,2,0,2,100.0,Italy 2; France 1,0,0
+COK,Cook Islands,2,2,0,2,100.0,New Zealand 2; United Kingdom 1; Japan 1; United States 1,0,0
+MMR,Myanmar,2,2,0,2,100.0,United States 1; Nepal 1,0,0
+TCD,Chad,2,2,0,2,100.0,Netherlands 1; Burkina Faso 1,1,0
+LBY,Libya,2,2,1,1,50.0,Germany 1,1,0
+MKD,North Macedonia,2,2,1,1,50.0,United States 1,3,1
+KOS,Kosovo,2,2,1,1,50.0,Switzerland 1,1,1
+TGO,Togo,2,2,1,1,50.0,Spain 1,1,0
+JEY,Jersey,2,2,2,0,0.0,,0,0
+GMB,Gambia,1,1,0,1,100.0,Germany 1,1,0
+GNB,Guinea-Bissau,1,1,0,1,100.0,Burkina Faso 1,0,0
+LBR,Liberia,1,1,0,1,100.0,United States 1,0,0
+MUS,Mauritius,1,1,0,1,100.0,India 1,0,0
+BWA,Botswana,1,1,0,1,100.0,United States 1,1,0
+MDV,Maldives,1,1,0,1,100.0,United States 1,0,0
+BTN,Bhutan,1,1,0,1,100.0,Italy 1; Netherlands 1,0,0
+KNA,Saint Kitts and Nevis,1,1,0,1,100.0,United States 1,0,0
+GNQ,Equatorial Guinea,1,1,0,1,100.0,Spain 1,0,0
+ZMB,Zambia,1,1,0,1,100.0,Iran 1,0,0
+VUT,Vanuatu,1,1,0,1,100.0,China 1; Hong Kong 1,0,0
+AIA,Anguilla,1,1,0,1,100.0,United States 1,0,0
+NIC,Nicaragua,1,1,0,1,100.0,United States 1,0,0
+KWT,Kuwait,1,1,0,1,100.0,France 1; United Kingdom 1; Germany 1,0,0
+LAO,Laos,1,1,0,1,100.0,Spain 1,0,0
+BDI,Burundi,1,1,0,1,100.0,Canada 1,0,0
+MDG,Madagascar,1,1,1,0,0.0,,1,0
+PAK,Pakistan,1,1,1,0,0.0,,11,8
+MRT,Mauritania,1,1,1,0,0.0,,1,0
+RWA,Rwanda,1,1,1,0,0.0,,1,0
+BIH,Bosnia and Herzegovina,1,1,1,0,0.0,,3,0
+YEM,Yemen,1,1,1,0,0.0,,1,0
+GUM,Guam,1,1,1,0,0.0,,0,0
+CUW,Curaçao,1,1,1,0,0.0,,1,0
+ERI,Eritrea,1,1,1,0,0.0,,1,0

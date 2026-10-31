@@ -1,0 +1,146 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Pagella}
+\newfontfamily\headfont{Inter}[UprightFont=*-ExtraBold,BoldFont=*-ExtraBold,Extension=.otf,Path=/usr/share/fonts/opentype/inter/]
+\usepackage[a4paper,margin=2.3cm]{geometry}
+\usepackage{graphicx,booktabs,float,caption,array,xcolor,longtable}
+\usepackage{xurl}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\usepackage[round]{natbib}
+\usepackage{setspace}
+\setstretch{1.05}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\floatpagefraction}{0.75}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\titleformat{\section}{\headfont\Large}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\headfont\large}{\thesubsection}{0.8em}{}
+\captionsetup{font=small,labelfont=bf}
+\urlstyle{same}
+\hypersetup{pdftitle={Where Every Film Was Shot},pdfauthor={Tristan Hotham}}
+
+
+\begin{document}
+\begin{center}
+{\Large\bfseries Where Every Film Was Shot\par}
+\vspace{0.4em}
+{\large Filming locations of {{source.n_films|int}} films in Wikidata:\\film cities, foreign productions and the James Bond films\par}
+\vspace{1.2em}
+{\large Tristan Hotham\par}
+\vspace{0.3em}
+{\small Independent researcher\\
+ORCID: 0000-0003-4931-9349\\
+DOI: \href{https://doi.org/{{meta.doi}}}{https://doi.org/{{meta.doi}}}\par}
+\vspace{0.8em}
+2026
+\end{center}
+
+\begin{quote}
+\small
+\begin{center}\textbf{Abstract}\end{center}
+Films are often shot somewhere other than where they come from or where they are set. I use Wikidata, the open knowledge base behind Wikipedia, to map the filming locations of every film it records with a located filming place: {{source.n_films|int}} films, {{source.n_locs|int}} locations and {{source.n_pairs|int}} film-location pairs. Because {{source.plev_pct.country|pc}} of those pairs name only a whole country and {{source.plev_pct.region|pc}} only a state or region, I classify each location by level and map only cities, towns and sites, so that country centroids do not appear as filming hotspots. Grouping places with the nearest large city, Los Angeles ({{hubs.la.n|int}} films), New York ({{hubs.ny.n|int}}), London ({{hubs.london.n|int}}) and Paris ({{hubs.paris.n|int}}) lead; Pinewood Studios is the single most used site ({{sites.pinewood|int}} films). Comparing each location's country with the film's countries of origin, {{abroad.pct|pc}} of films were shot at least partly abroad. Canada hosts the most foreign productions ({{hosts.can.foreign|int}}, {{hosts.can_from_us_pct|pc}} of them American), while in Malta, Morocco, Bulgaria and Iceland foreign films are the large majority of all recorded filming. The share of films shot abroad rose from {{decades.4.pct_ex_idn|pc}} in the 1950s to {{decades.9.pct_ex_idn|pc}} in the 2000s (excluding Indonesia). The 25 Eon James Bond films have {{bond.n_pairs|int}} recorded locations in {{bond.n_countries|int}} countries and territories, but recent films are far better documented than early ones. Coverage is strongly biased towards American and well-known films: {{source.us_pct|pc}} of films are American, and the most popular films have nearly three times as many recorded locations as the least known.
+
+\textbf{Keywords:} film; filming locations; runaway production; film geography; James Bond; Wikidata; open data; mapping
+\end{quote}
+
+\section{Introduction}
+Where a film is shot is an economic decision as much as an artistic one. Studios cluster in a few production centres, and since the 1950s producers have followed lower costs, tax incentives, skilled crews and landscapes to other countries, a pattern known in the United States as runaway production \citep{miller,goldsmith}. Some places, Toronto, Budapest, Malta or the Moroccan desert, have built industries on standing in for somewhere else \citep{scott}.
+
+That geography is usually studied through case studies, trade data or production surveys. Wikidata \citep{wikidata} offers another, open view: it records a filming location (property P915) with coordinates for tens of thousands of films, together with each film's release dates and countries of origin. This paper uses one query of that record to ask four questions. Which places are filmed most? Which countries host other countries' productions, and has that changed by decade? Which cities are filmed mostly by foreign productions? And how do the James Bond films, the archetypal globe-trotting series, look in the data? An interactive map accompanies the paper (\url{{{meta.page}}}).
+
+The contribution is descriptive, and the main finding about the data is its unevenness. I am explicit about coverage throughout: the record is a map of documented filming, not of filming.
+
+\section{Data}
+The data come from one QLever \citep{qlever} query of Wikidata in {{meta.retrieved}}: every item that is an instance of film (Q11424) with a filming location that has coordinates (P625), with the film's English label, publication dates (P577), countries of origin (P495) and number of sitelinks, and each location's label, coordinates and country (P17). The result has {{source.n_rows|int}} rows, because a film repeats for every combination of date, origin and location country. Table~\ref{tab:pipe} shows how this reduces to films and locations. Country outlines, first-level divisions and populated places come from Natural Earth \citep{naturalearth}.
+
+{{TABLE_PIPELINE}}
+
+\section{Methods}
+\subsection{Records}
+I keep one record per film and per location. A film's year is its earliest publication year; {{source.n_dated|int}} films have one. {{source.n_notitle|int}} have no English label and are identified by their Wikidata ID. Directors (P57), from a second query, are used only for labels on the interactive map.
+
+\subsection{Location levels}
+Each location is assigned a level. It is a \emph{country} if its Wikidata ID is that of a Natural Earth country, a UK nation, a former state or a continent; a \emph{region} if it is a Natural Earth first-level division (matched by Wikidata ID or by name within the same country) or one of a short list of large named areas (French and Italian regions, big islands); a \emph{city or town} if its English label matches a Natural Earth populated place within 40 km; otherwise a \emph{site}, which includes studios, streets, buildings, parks, villages and small islands. Small territories under 1,500 km$^2$ (Hong Kong, Malta, Monaco, Singapore and others) count as cities, because their centroid is close to everywhere in them. Country and region locations are counted in all country-level figures but are never mapped as points. A location's country is the present-day country its point falls in.
+
+\subsection{Home and abroad}
+A film is shot abroad at a location if the location's country is not one of the film's countries of origin. Co-productions are at home in every partner country; films of the Soviet Union, Yugoslavia and Czechoslovakia are at home in any successor state; and crown dependencies and overseas territories count as home for the United Kingdom, the United States, France, the Netherlands and Denmark. {{source.n_no_origin|int}} films with no country of origin are excluded. Indonesia needs separate treatment: {{idn.n|int}} films ({{idn.pct_all|pc}} of all) list the single location ``Indonesia'', {{idn.idn_origin_pct|pc}} of them Indonesian, so I report shares both with and without Indonesian films.
+
+\subsection{Film cities and popularity}
+For city rankings, every city, town or site is grouped with the nearest Natural Earth populated place of at least 250,000 people within 32 km, so that Pinewood Studios counts for London and Santa Monica for Los Angeles. Popularity is the number of Wikidata sitelinks (Wikipedia articles in any language and other Wikimedia pages), a rough measure of how widely a film is known. Popularity-weighted counts sum the sitelinks of the films at a place.
+
+\subsection{James Bond}
+The 25 official films made by Eon Productions, from Dr.\ No (1962) to No Time to Die (2021), were identified by a hand list of Wikidata IDs, each checked against title and year. The 1967 Casino Royale, not an Eon production, is excluded.
+
+\section{Results}
+\subsection{Where films are shot}
+Figure~\ref{fig:world} shows the {{source.n_mapped|int}} films with at least one mapped place ({{source.mapped_pct|pc}} of all). The pattern is dense in western Europe and the United States, thinner across Asia and Latin America, and almost empty across Africa, a first indication of coverage.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_world.png}
+\caption{Filming locations in Wikidata: film-location records per hexagon (cities, towns and sites only), Equal Earth projection.}\label{fig:world}\end{figure}
+
+Grouped into cities (Figure~\ref{fig:cities}), Los Angeles has {{hubs.la.n|int}} films, New York {{hubs.ny.n|int}}, London {{hubs.london.n|int}}, Paris {{hubs.paris.n|int}} and Vancouver {{hubs.vancouver.n|int}}; the top five account for {{hubs.top5_pct|pc}} of films with a mapped place. Weighting by popularity leaves the top five unchanged but moves places further down: Long Beach rises from {{hubs.pick.Long Beach.rank_n|ord}} to {{hubs.pick.Long Beach.rank_w|ord}}, while Hong Kong falls from {{hubs.pick.Hong Kong.rank_n|ord}} to {{hubs.pick.Hong Kong.rank_w|ord}} and Ooty, a hill town in Tamil Nadu with {{hubs.pick.Ooty.n|int}} almost entirely Indian films, to {{hubs.pick.Ooty.rank_w|ord}}. The most used single site is Pinewood Studios ({{sites.pinewood|int}} films); {{sites.n_studio|int}} locations are named as studios or stages and appear {{sites.studio_pairs|int}} times.
+
+\begin{figure}[tbp]\centering\includegraphics[width=.88\textwidth]{f_cities.png}
+\caption{The twenty filming cities with most films, and (right, gold) their rank when films are weighted by sitelinks.}\label{fig:cities}\end{figure}
+
+\subsection{Home and abroad}
+Of {{abroad.n|int}} films with an origin and a located place, {{abroad.any|int}} ({{abroad.pct|pc}}) were shot at least partly abroad, {{abroad.pct_ex_idn|pc}} excluding Indonesian films; {{abroad.only|int}} were shot only abroad. Table~\ref{tab:hosts} and Figure~\ref{fig:hosts} show the host countries. Canada hosts {{hosts.can.foreign|int}} foreign films, {{hosts.can_from_us_pct|pc}} American, and is followed by the United States ({{hosts.usa.foreign|int}}), the United Kingdom ({{hosts.gbr.foreign|int}}), France and Spain. In proportion, Malta ({{hosts.mlt.foreign_pct|pc}}), Morocco ({{hosts.mar.foreign_pct|pc}}), Bulgaria ({{hosts.bgr.foreign_pct|pc}}) and Iceland ({{hosts.isl.foreign_pct|pc}}) are filmed mostly by others. Large producers mostly stay home: only {{hosts.usa.foreign_pct|pc}} of films shot in the United States are foreign. Leaving home is commoner for British ({{leave.gbr.pct|pc}}) and Indian ({{leave.ind.pct|pc}}) films than for American ({{leave.usa.pct|pc}}) or French ({{leave.fra.pct|pc}}) ones.
+
+{{TABLE_HOSTS}}
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_hosts.png}
+\caption{Left: the fifteen countries hosting most foreign productions. Right: share of films shot in each country that are foreign, for countries with at least 40 films with a known origin.}\label{fig:hosts}\end{figure}
+
+\subsection{Change by decade}
+The share of films shot abroad rose from {{decades.4.pct_ex_idn|pc}} in the 1950s to {{decades.9.pct_ex_idn|pc}} in the 2000s and {{decades.10.pct_ex_idn|pc}} in the 2010s (Figure~\ref{fig:dec}). American films travelled early: {{decades.5.us_pct|pc}} of those from the 1960s were shot partly abroad. What changed more is the destination. Foreign productions in Spain peak in the {{host_peak.ESP}}s, the era of European co-productions and westerns shot in Almer\'ia; Canada's in the {{host_peak.CAN}}s, Bulgaria's in the {{host_peak.BGR}}s and Hungary's and Iceland's in the {{host_peak.HUN}}s. The 2020s run only to 2026 and are incomplete.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_decades.png}
+\caption{Left: share of films shot at least partly abroad, by decade. Right: foreign productions hosted per decade by six countries.}\label{fig:dec}\end{figure}
+
+\subsection{Stand-in cities}
+Among cities with at least 25 films with a known origin, foreign productions dominate in Valletta ({{hubs.pick.Valletta.foreign_pct|pc}}), Bangkok ({{hubs.pick.Bangkok.foreign_pct|pc}}), Budapest ({{hubs.pick.Budapest.foreign_pct|pc}}), Vancouver ({{hubs.vancouver.foreign_pct|pc}}) and Toronto ({{hubs.pick.Toronto.foreign_pct|pc}}) (Figure~\ref{fig:stand}). These are the cities known as stand-ins, but the data cannot confirm what they stood in for, since narrative location (P840) is not in the query. Several big host countries are recorded mostly at country level: {{hosts.nzl.n|int}} films were shot in New Zealand, but only {{hubs.pick.Wellington.n|int}} at a place in Wellington and {{hubs.pick.Auckland.n|int}} in Auckland.
+
+\begin{figure}[tbp]\centering\includegraphics[width=.88\textwidth]{f_standin.png}
+\caption{Cities where foreign productions are the largest share of recorded filming, with the two commonest origins.}\label{fig:stand}\end{figure}
+
+\subsection{James Bond}
+The 25 Eon films have {{bond.n_pairs|int}} recorded locations, {{bond.n_locs|int}} distinct, in {{bond.n_countries|int}} countries and territories (Figure~\ref{fig:bond}, Table~\ref{tab:bond}). Pinewood Studios is listed for {{bond.pinewood|int}}. After the United Kingdom the commonest countries are the United States ({{bond.countries.1.2}} films) and Switzerland, Italy and the Bahamas ({{bond.countries.2.2}} each). Documentation grows over time: films before 1990 average {{bond.early|f1}} locations, those since 2006 {{bond.late|f1}}; Spectre has {{bond.most.n}} and Licence to Kill {{bond.fewest.n}}.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_bond.png}
+\caption{Filming locations of the 25 Eon James Bond films in Wikidata.}\label{fig:bond}\end{figure}
+
+{{TABLE_BOND}}
+
+\subsection{Coverage}
+The films come from {{origins.n_countries|int}} countries, but {{source.us_pct|pc}} are American and {{origins.top.1.pct|pc}} Indonesian. India, the world's largest producer of feature films by number, has {{origins.ind|int}}; China {{origins.chn|int}}; Nigeria {{origins.nga|int}}. Popular films are described in more detail: films with fewer than five sitelinks average {{pop.tiers.0.locs|f1}} locations and {{pop.tiers.0.pct|pc}} were shot abroad, films with 50 or more average {{pop.tiers.3.locs|f1}} and {{pop.tiers.3.pct|pc}} (Figure~\ref{fig:cov}). {{source.one_loc_pct|pc}} of films have a single recorded location.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_coverage.png}
+\caption{Coverage: film-location records by level; films by country of origin; share shot abroad and mean recorded locations by popularity.}\label{fig:cov}\end{figure}
+
+\section{Discussion}
+Three features of the open record stand out. First, the concentration of filming in a handful of production cities, with Los Angeles, New York, London and Paris far ahead, matches what studies of film industry clustering would predict \citep{scott}. Second, the host-country pattern reflects the economics of runaway production: Canada's large count, overwhelmingly American, and the late rise of Bulgaria and Hungary are consistent with the role of tax incentives and studio building \citep{miller,goldsmith}. Third, and most important for interpretation, the record is shaped by who documents films. The rise in films shot abroad is partly a rise in recorded detail, as the Bond films show: earlier films travelled, but fewer of their locations have been entered.
+
+\section{Limitations}
+First, Wikidata's filming locations are incomplete and skewed to American, English-language and well-known films; totals count documented films, not films. Second, a third of film-location records name only a country or region; these are kept for country figures but cannot be mapped, so the point map understates places such as New Zealand and Morocco. Third, the level classification is rule based and will misclassify some locations, for example large islands treated as sites. Fourth, home and abroad depend on Wikidata's countries of origin, which for co-productions may list many countries and for others may be missing. Fifth, the data say nothing about setting, time on location or budget. Sixth, sitelinks measure Wikimedia attention, not audiences. Finally, all counts refer to one retrieval in {{meta.retrieved}}.
+
+\section{Conclusion}
+One open query is enough to draw a world map of filming, rank the film cities, show which countries host other countries' films and follow James Bond around the world. Its gaps are part of the result: the map shows where filming has been documented, and the interactive version lets readers see both.
+
+\section*{Data and code availability}
+The interactive map is at \url{{{meta.page}}}. Data and code are at \url{{{meta.repo}}} and archived with this paper at \url{https://doi.org/{{meta.doi}}}. Derived data are released under CC BY 4.0 and code under the MIT licence.
+
+\section*{AI statement}
+I wrote the text, with drafting and editing assistance from Claude (Anthropic), which also helped prepare the analysis code. I reviewed and checked all text and results.
+
+\begin{thebibliography}{9}
+\bibitem[Bast and Buchhold(2017)]{qlever} Bast, H. and Buchhold, B. (2017) QLever: a query engine for efficient SPARQL+text search. \emph{Proceedings of the 2017 ACM Conference on Information and Knowledge Management}, 647 to 656.
+\bibitem[Goldsmith and O'Regan(2005)]{goldsmith} Goldsmith, B. and O'Regan, T. (2005) \emph{The Film Studio: Film Production in the Global Economy}. Lanham: Rowman and Littlefield.
+\bibitem[Miller et al.(2005)]{miller} Miller, T., Govil, N., McMurria, J., Maxwell, R. and Wang, T. (2005) \emph{Global Hollywood 2}. London: British Film Institute.
+\bibitem[Natural Earth(2026)]{naturalearth} Natural Earth (2026) Admin 0 countries, admin 1 states and provinces, and populated places. Public domain. \url{https://www.naturalearthdata.com/}
+\bibitem[Scott(2005)]{scott} Scott, A. J. (2005) \emph{On Hollywood: The Place, the Industry}. Princeton: Princeton University Press.
+\bibitem[Vrande\v{c}i\'c and Kr\"otzsch(2014)]{wikidata} Vrande\v{c}i\'c, D. and Kr\"otzsch, M. (2014) Wikidata: a free collaborative knowledgebase. \emph{Communications of the ACM}, 57(10), 78 to 85.
+\end{thebibliography}
+\end{document}
